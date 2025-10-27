@@ -1,11 +1,11 @@
-import { PDFEditor } from './components/PDFEditor'
+
 import { Toaster } from 'sonner'
 import './App.css'
 
 function App() {
   return (
     <>
-      <PDFEditor />
+      <div>hello</div>
       <Toaster position="top-right" />
     </>
   )
