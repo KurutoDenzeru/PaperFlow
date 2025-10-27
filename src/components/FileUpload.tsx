@@ -19,9 +19,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file && file.type === 'application/pdf') {
+        console.log('📤 File selected:', {
+          name: file.name,
+          size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+          type: file.type,
+          lastModified: new Date(file.lastModified).toLocaleString(),
+        });
         const url = URL.createObjectURL(file);
+        console.log('🔗 Object URL created:', url);
         onFileSelect(file, url);
       } else if (file) {
+        console.warn('⚠️ Invalid file type:', file.type);
         alert('Please select a valid PDF file');
       }
     },
@@ -40,9 +48,16 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
       const file = e.dataTransfer.files?.[0];
       if (file && file.type === 'application/pdf') {
+        console.log('📥 File dropped:', {
+          name: file.name,
+          size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+          type: file.type,
+        });
         const url = URL.createObjectURL(file);
+        console.log('🔗 Object URL created:', url);
         onFileSelect(file, url);
       } else if (file) {
+        console.warn('⚠️ Invalid file type dropped:', file.type);
         alert('Please drop a valid PDF file');
       }
     },

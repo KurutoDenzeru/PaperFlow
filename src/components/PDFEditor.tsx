@@ -24,6 +24,11 @@ export const PDFEditor: React.FC = () => {
   });
 
   const handleFileSelect = useCallback((file: File, url: string) => {
+    console.log('✅ File selected in PDFEditor:', {
+      file: file.name,
+      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+      url,
+    });
     setState((prev) => ({
       ...prev,
       currentFile: file,
@@ -34,6 +39,7 @@ export const PDFEditor: React.FC = () => {
   }, []);
 
   const handleFileClear = useCallback(() => {
+    console.log('🗑️ PDF cleared');
     setState((prev) => ({
       ...prev,
       currentFile: null,
@@ -67,18 +73,30 @@ export const PDFEditor: React.FC = () => {
 
   const handleSavePDF = useCallback(async () => {
     if (!state.currentFile) {
+      console.warn('⚠️ Save attempted with no file loaded');
       toast.error('No PDF loaded');
       return;
     }
 
     try {
+      console.log('💾 Starting PDF save process...');
       const buffer = await fileToArrayBuffer(state.currentFile);
+      console.log(`   ArrayBuffer created: ${(buffer.byteLength / 1024 / 1024).toFixed(2)} MB`);
+      
       const blob = await savePDFWithAnnotations(buffer);
-      downloadPDF(blob, `${state.currentFile.name.replace('.pdf', '')}_edited.pdf`);
+      console.log(`   PDF saved as blob: ${(blob.size / 1024 / 1024).toFixed(2)} MB`);
+      
+      const filename = `${state.currentFile.name.replace('.pdf', '')}_edited.pdf`;
+      downloadPDF(blob, filename);
+      console.log(`✅ PDF downloaded: ${filename}`);
       toast.success('PDF downloaded successfully!');
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('❌ PDF save error:', {
+        message: errorMessage,
+        error,
+      });
       toast.error('Failed to save PDF');
-      console.error('Save error:', error);
     }
   }, [state.currentFile]);
 
