@@ -56,6 +56,50 @@ export function PDFCanvas({
     }
   }, [currentPage]);
 
+  // Intersection Observer to detect which page is in view and update pagination
+  useEffect(() => {
+    if (!scrollContainerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the page that is most visible in the viewport
+        let mostVisiblePage: number | null = null;
+        let maxVisibility = 0;
+
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const visibility = entry.intersectionRatio;
+            if (visibility > maxVisibility) {
+              maxVisibility = visibility;
+              const pageNum = parseInt(entry.target.getAttribute('data-page-num') || '0', 10);
+              if (pageNum > 0) {
+                mostVisiblePage = pageNum;
+              }
+            }
+          }
+        });
+
+        // Update the current page if we found a visible page
+        if (mostVisiblePage !== null) {
+          onPageChange(mostVisiblePage);
+        }
+      },
+      {
+        root: scrollContainerRef.current,
+        threshold: 0.5, // Page must be 50% visible to be considered "current"
+      }
+    );
+
+    // Observe all pages
+    Object.values(pageRefsMap.current).forEach((pageRef) => {
+      if (pageRef) observer.observe(pageRef);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [numPages, onPageChange]);
+
   const getRelativePosition = useCallback((e: React.MouseEvent): Point => {
     const target = e.currentTarget as HTMLDivElement;
     const rect = target.getBoundingClientRect();
@@ -325,10 +369,13 @@ export function PDFCanvas({
             {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => (
               <div
                 key={pageNum}
+                data-page-num={pageNum}
                 ref={(el) => {
                   pageRefsMap.current[pageNum] = el;
                 }}
-                className="relative mx-auto shadow-2xl rounded-md bg-white overflow-hidden"
+                className={`relative mx-auto rounded-md bg-white overflow-hidden transition-all ${
+                  pageNum === currentPage ? 'border-2 border-gray-400' : 'border border-gray-200'
+                }`}
                 style={{
                   width: 'fit-content',
                   cursor: currentTool === 'select' ? 'default' : 'crosshair',
