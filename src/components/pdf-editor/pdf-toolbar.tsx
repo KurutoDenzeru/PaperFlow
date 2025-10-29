@@ -48,6 +48,7 @@ interface PDFToolbarProps {
   onColorChange: (color: string) => void;
   strokeWidth: number;
   onStrokeWidthChange: (width: number) => void;
+  sidebarOpen?: boolean;
 }
 
 const colors = [
@@ -74,6 +75,7 @@ export function PDFToolbar({
   onColorChange,
   strokeWidth,
   onStrokeWidthChange,
+  sidebarOpen = true,
 }: PDFToolbarProps) {
   const tools: { tool: Tool; icon: React.ReactNode; label: string }[] = [
     { tool: 'select', icon: <MousePointer2 className="w-4 h-4" />, label: 'Select' },
@@ -89,10 +91,10 @@ export function PDFToolbar({
 
   return (
     <TooltipProvider>
-      <div className="w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-        <div className="flex items-center justify-between px-4 py-2 gap-2">
+      <div className={`w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50 transition-all ${sidebarOpen ? 'sm:mr-0' : 'mr-0'}`}>
+        <div className="flex items-center justify-between px-2 md:px-4 py-2 gap-1 md:gap-2 overflow-x-auto">
           {/* Drawing Tools */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
             {tools.map(({ tool, icon, label }) => (
               <Tooltip key={tool}>
                 <TooltipTrigger asChild>
@@ -100,32 +102,33 @@ export function PDFToolbar({
                     pressed={currentTool === tool}
                     onPressedChange={() => onToolChange(tool)}
                     size="sm"
+                    className="h-8 w-8 md:h-9 md:w-9 px-1"
                   >
                     {icon}
                   </Toggle>
                 </TooltipTrigger>
-                <TooltipContent>{label}</TooltipContent>
+                <TooltipContent className="hidden sm:block">{label}</TooltipContent>
               </Tooltip>
             ))}
           </div>
 
-          <Separator orientation="vertical" className="h-8" />
+          <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden sm:block" />
 
           {/* Color Picker */}
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Palette className="w-4 h-4" />
+                  <Button variant="outline" size="sm" className="gap-2 h-8 md:h-9 px-2 shrink-0">
+                    <Palette className="w-4 h-4 shrink-0" />
                     <div 
-                      className="w-4 h-4 rounded border" 
+                      className="w-3 h-3 md:w-4 md:h-4 rounded border shrink-0" 
                       style={{ backgroundColor: currentColor }}
                     />
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
-              <TooltipContent>Color</TooltipContent>
+              <TooltipContent className="hidden sm:block">Color</TooltipContent>
             </Tooltip>
             <DropdownMenuContent className="w-48">
               <div className="grid grid-cols-6 gap-2 p-2">
@@ -145,23 +148,23 @@ export function PDFToolbar({
           </DropdownMenu>
 
           {/* Stroke Width */}
-          <div className="flex items-center gap-2 px-2">
-            <span className="text-xs text-muted-foreground">Width:</span>
+          <div className="hidden md:flex items-center gap-2 px-2 shrink-0">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Width:</span>
             <Slider
               value={[strokeWidth]}
               onValueChange={(value) => onStrokeWidthChange(value[0])}
               min={1}
               max={10}
               step={1}
-              className="w-24"
+              className="w-20"
             />
             <span className="text-xs w-4">{strokeWidth}</span>
           </div>
 
-          <Separator orientation="vertical" className="h-8" />
+          <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
 
           {/* History */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -169,11 +172,12 @@ export function PDFToolbar({
                   size="sm"
                   onClick={onUndo}
                   disabled={!canUndo}
+                  className="h-8 w-8 md:h-9 md:w-9 px-1"
                 >
                   <Undo className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Undo</TooltipContent>
+              <TooltipContent className="hidden sm:block">Undo</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -182,31 +186,33 @@ export function PDFToolbar({
                   size="sm"
                   onClick={onRedo}
                   disabled={!canRedo}
+                  className="h-8 w-8 md:h-9 md:w-9 px-1"
                 >
                   <Redo className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Redo</TooltipContent>
+              <TooltipContent className="hidden sm:block">Redo</TooltipContent>
             </Tooltip>
           </div>
 
-          <Separator orientation="vertical" className="h-8" />
+          <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden sm:block" />
 
           {/* Zoom Controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => onScaleChange(Math.max(0.5, scale - 0.25))}
+                  className="h-8 w-8 md:h-9 md:w-9 px-1"
                 >
                   <ZoomOut className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Zoom Out</TooltipContent>
+              <TooltipContent className="hidden sm:block">Zoom Out</TooltipContent>
             </Tooltip>
-            <span className="text-sm font-medium min-w-16 text-center">
+            <span className="text-xs md:text-sm font-medium min-w-10 md:min-w-12 text-center whitespace-nowrap">
               {Math.round(scale * 100)}%
             </span>
             <Tooltip>
@@ -215,33 +221,34 @@ export function PDFToolbar({
                   variant="ghost"
                   size="sm"
                   onClick={() => onScaleChange(Math.min(3, scale + 0.25))}
+                  className="h-8 w-8 md:h-9 md:w-9 px-1"
                 >
                   <ZoomIn className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Zoom In</TooltipContent>
+              <TooltipContent className="hidden sm:block">Zoom In</TooltipContent>
             </Tooltip>
           </div>
 
-          <Separator orientation="vertical" className="h-8" />
+          <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
 
           {/* Page Actions */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={onAddPage}>
+                <Button variant="ghost" size="sm" onClick={onAddPage} className="h-8 w-8 md:h-9 md:w-9 px-1">
                   <Plus className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Add Page</TooltipContent>
+              <TooltipContent className="hidden sm:block">Add Page</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={onRotate}>
+                <Button variant="ghost" size="sm" onClick={onRotate} className="h-8 w-8 md:h-9 md:w-9 px-1">
                   <RotateCw className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Rotate</TooltipContent>
+              <TooltipContent className="hidden sm:block">Rotate</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -250,25 +257,26 @@ export function PDFToolbar({
                   size="sm"
                   onClick={onDeleteSelected}
                   disabled={!hasSelection}
+                  className="h-8 w-8 md:h-9 md:w-9 px-1"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Delete Selected</TooltipContent>
+              <TooltipContent className="hidden sm:block">Delete</TooltipContent>
             </Tooltip>
           </div>
 
-          <Separator orientation="vertical" className="h-8" />
+          <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
 
           {/* Export */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="default" size="sm" onClick={onExport}>
-                <Download className="w-4 h-4 mr-2" />
-                Export PDF
+              <Button variant="default" size="sm" onClick={onExport} className="h-8 px-2 md:px-3 shrink-0 text-xs md:text-sm whitespace-nowrap">
+                <Download className="w-4 h-4 md:mr-2 shrink-0" />
+                <span className="hidden md:inline">Export</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Export as PDF</TooltipContent>
+            <TooltipContent className="hidden sm:block">Export as PDF</TooltipContent>
           </Tooltip>
         </div>
       </div>

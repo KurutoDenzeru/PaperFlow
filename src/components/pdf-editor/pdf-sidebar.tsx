@@ -50,23 +50,23 @@ export function PDFSidebar({
   }
 
   return (
-    <div className="fixed left-0 top-0 w-64 h-screen bg-background border-r z-40 flex flex-col overflow-hidden">
+    <div className="fixed left-0 top-0 w-56 sm:w-64 h-screen pt-16 bg-background border-r z-40 flex flex-col overflow-hidden">
       <div className="flex items-center justify-between p-2 border-b shrink-0">
-        <h3 className="font-semibold text-sm">Document Details:</h3>
-        <Button variant="ghost" size="sm" onClick={onToggle}>
+        <h3 className="font-semibold text-xs sm:text-sm truncate">Document Details</h3>
+        <Button variant="ghost" size="sm" onClick={onToggle} className="h-7 w-7 shrink-0">
           <ChevronLeft className="w-4 h-4" />
         </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="w-full grid grid-cols-2 shrink-0">
-          <TabsTrigger value="pages">Pages</TabsTrigger>
-          <TabsTrigger value="layers">Layers</TabsTrigger>
+        <TabsList className="w-full grid grid-cols-2 shrink-0 text-xs sm:text-sm">
+          <TabsTrigger value="pages" className="text-xs">Pages</TabsTrigger>
+          <TabsTrigger value="layers" className="text-xs">Layers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pages" className="flex-1 overflow-hidden mt-0">
           <ScrollArea className="h-full w-full">
-            <div className="p-2 space-y-2">
+            <div className="p-1.5 sm:p-2 space-y-1.5 sm:space-y-2">
               {file && Array.from({ length: numPages }, (_, i) => i + 1).map((pageNumber) => (
                 <div
                   key={pageNumber}

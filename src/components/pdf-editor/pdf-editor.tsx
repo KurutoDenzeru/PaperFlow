@@ -262,6 +262,7 @@ export function PDFEditor() {
         onColorChange={setCurrentColor}
         strokeWidth={strokeWidth}
         onStrokeWidthChange={setStrokeWidth}
+        sidebarOpen={sidebarOpen}
       />
 
       <div className="flex-1 flex overflow-hidden relative w-full">
@@ -277,7 +278,7 @@ export function PDFEditor() {
           onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
 
-        <div className={`flex-1 flex w-full transition-all duration-200 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <div className={`flex-1 flex w-full transition-all duration-200 ${sidebarOpen ? 'ml-56 sm:ml-64' : 'ml-0'}`}>
           <PDFCanvas
             file={pdfState.file}
             currentPage={pdfState.currentPage}
