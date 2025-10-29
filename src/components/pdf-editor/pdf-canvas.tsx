@@ -44,6 +44,7 @@ export function PDFCanvas({
 }: PDFCanvasProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pageRefsMap = useRef<Record<number, HTMLDivElement | null>>({});
+  const isScrollingProgrammaticallyRef = useRef(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
@@ -52,7 +53,12 @@ export function PDFCanvas({
   useEffect(() => {
     const pageElement = pageRefsMap.current[currentPage];
     if (pageElement && scrollContainerRef.current) {
+      isScrollingProgrammaticallyRef.current = true;
       pageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Reset flag after scroll completes
+      setTimeout(() => {
+        isScrollingProgrammaticallyRef.current = false;
+      }, 1000);
     }
   }, [currentPage]);
 
@@ -62,6 +68,9 @@ export function PDFCanvas({
 
     const observer = new IntersectionObserver(
       (entries) => {
+        // Don't update if we're programmatically scrolling
+        if (isScrollingProgrammaticallyRef.current) return;
+
         // Find the page that is most visible in the viewport
         let mostVisiblePage: number | null = null;
         let maxVisibility = 0;
