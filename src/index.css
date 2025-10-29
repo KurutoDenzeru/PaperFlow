@@ -118,3 +118,38 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide PDF text layer and annotations */
+.react-pdf__Document {
+  display: flex;
+  justify-content: center;
+}
+
+.react-pdf__Page {
+  position: relative;
+  display: inline-block;
+}
+
+.react-pdf__Page__textContent {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.react-pdf__Page__annotations {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.textLayer {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.annotationLayer {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

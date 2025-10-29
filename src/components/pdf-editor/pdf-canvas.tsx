@@ -58,11 +58,11 @@ export function PDFCanvas({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (currentTool === 'select') return;
-    
+
     const point = getRelativePosition(e);
     setIsDrawing(true);
     setStartPoint(point);
-    
+
     if (currentTool === 'pen') {
       setCurrentPoints([point]);
     }
@@ -70,7 +70,7 @@ export function PDFCanvas({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDrawing || !startPoint) return;
-    
+
     if (currentTool === 'pen') {
       const point = getRelativePosition(e);
       setCurrentPoints(prev => [...prev, point]);
@@ -79,9 +79,9 @@ export function PDFCanvas({
 
   const handleMouseUp = (e: React.MouseEvent) => {
     if (!isDrawing || !startPoint) return;
-    
+
     const endPoint = getRelativePosition(e);
-    
+
     const annotation: Omit<Annotation, 'id'> = {
       type: currentTool,
       pageNumber: currentPage,
@@ -352,6 +352,8 @@ export function PDFCanvas({
                 pageNumber={currentPage}
                 scale={scale}
                 rotate={rotation}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
               />
             </Document>
 
