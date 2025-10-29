@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -42,14 +42,23 @@ export function PDFCanvas({
   currentColor,
   strokeWidth,
 }: PDFCanvasProps) {
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const pageRefsMap = useRef<Record<number, HTMLDivElement | null>>({});
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
 
+  // Scroll to the current page when it changes
+  useEffect(() => {
+    const pageElement = pageRefsMap.current[currentPage];
+    if (pageElement && scrollContainerRef.current) {
+      pageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [currentPage]);
+
   const getRelativePosition = useCallback((e: React.MouseEvent): Point => {
-    if (!canvasRef.current) return { x: 0, y: 0 };
-    const rect = canvasRef.current.getBoundingClientRect();
+    const target = e.currentTarget as HTMLDivElement;
+    const rect = target.getBoundingClientRect();
     return {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
@@ -307,13 +316,18 @@ export function PDFCanvas({
   return (
     <div className="flex-1 flex flex-col w-full bg-muted/30 relative overflow-hidden">
       {/* PDF Canvas - Continuous Scroll */}
-      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-24">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 w-full overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-24"
+      >
         <div className="flex flex-col items-center w-full">
           <div className="space-y-8 w-full max-w-7xl">
             {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => (
               <div
                 key={pageNum}
-                ref={pageNum === currentPage ? canvasRef : null}
+                ref={(el) => {
+                  pageRefsMap.current[pageNum] = el;
+                }}
                 className="relative mx-auto shadow-2xl rounded-md bg-white overflow-hidden"
                 style={{
                   width: 'fit-content',
