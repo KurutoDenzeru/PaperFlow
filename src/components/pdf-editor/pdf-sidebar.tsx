@@ -36,7 +36,7 @@ export function PDFSidebar({
 
   if (!isOpen) {
     return (
-      <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] z-40">
+      <div className="fixed left-0 top-0 pt-16 h-screen z-40 flex flex-col">
         <Button
           variant="outline"
           size="sm"
@@ -50,22 +50,22 @@ export function PDFSidebar({
   }
 
   return (
-    <div className="fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-background border-r z-40">
-      <div className="flex items-center justify-between p-2 border-b">
-        <h3 className="font-semibold text-sm">Sidebar</h3>
+    <div className="fixed left-0 top-0 w-64 h-screen bg-background border-r z-40 flex flex-col overflow-hidden">
+      <div className="flex items-center justify-between p-2 border-b shrink-0">
+        <h3 className="font-semibold text-sm">Document Details:</h3>
         <Button variant="ghost" size="sm" onClick={onToggle}>
           <ChevronLeft className="w-4 h-4" />
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="h-[calc(100%-3rem)]">
-        <TabsList className="w-full grid grid-cols-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+        <TabsList className="w-full grid grid-cols-2 shrink-0">
           <TabsTrigger value="pages">Pages</TabsTrigger>
           <TabsTrigger value="layers">Layers</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pages" className="h-[calc(100%-3rem)] mt-0">
-          <ScrollArea className="h-full">
+        <TabsContent value="pages" className="flex-1 overflow-hidden mt-0">
+          <ScrollArea className="h-full w-full">
             <div className="p-2 space-y-2">
               {file && Array.from({ length: numPages }, (_, i) => i + 1).map((pageNumber) => (
                 <div
@@ -73,8 +73,8 @@ export function PDFSidebar({
                   className={`
                     relative group cursor-pointer rounded-lg border-2 overflow-hidden
                     transition-all hover:shadow-md
-                    ${currentPage === pageNumber 
-                      ? 'border-primary shadow-lg' 
+                    ${currentPage === pageNumber
+                      ? 'border-primary shadow-lg'
                       : 'border-transparent hover:border-primary/50'
                     }
                   `}

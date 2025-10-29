@@ -243,7 +243,7 @@ export function PDFEditor() {
   }
 
   return (
-    <div className="h-screen flex flex-col w-full">
+    <div className="h-screen w-screen flex flex-col overflow-hidden">
       <PDFToolbar
         currentTool={currentTool}
         onToolChange={setCurrentTool}
@@ -264,7 +264,7 @@ export function PDFEditor() {
         onStrokeWidthChange={setStrokeWidth}
       />
 
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative w-full">
         <PDFSidebar
           file={pdfState.file}
           numPages={pdfState.numPages}
@@ -277,7 +277,7 @@ export function PDFEditor() {
           onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
 
-        <div className={`flex-1 flex w-full transition-all ${sidebarOpen ? 'pl-64' : 'pl-0'}`}>
+        <div className={`flex-1 flex w-full transition-all duration-200 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
           <PDFCanvas
             file={pdfState.file}
             currentPage={pdfState.currentPage}
