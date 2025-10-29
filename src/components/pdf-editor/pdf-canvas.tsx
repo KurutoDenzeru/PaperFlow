@@ -305,67 +305,78 @@ export function PDFCanvas({
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center w-full bg-muted/30">
-      {/* Page Navigation */}
-      <div className="flex items-center gap-4 py-4">
+    <div className="flex-1 flex flex-col w-full bg-muted/30 relative overflow-hidden">
+      {/* PDF Canvas - Continuous Scroll */}
+      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-24">
+        <div className="flex flex-col items-center w-full">
+          <div className="space-y-8 w-full max-w-7xl">
+            {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => (
+              <div
+                key={pageNum}
+                ref={pageNum === currentPage ? canvasRef : null}
+                className="relative mx-auto shadow-2xl rounded-md bg-white overflow-hidden"
+                style={{
+                  width: 'fit-content',
+                  cursor: currentTool === 'select' ? 'default' : 'crosshair',
+                }}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onClick={() => currentTool === 'select' && onAnnotationSelect(null)}
+              >
+                <Document
+                  file={file}
+                  onLoadSuccess={({ numPages }) => {
+                    if (pageNum === 1) {
+                      onNumPagesChange(numPages);
+                    }
+                  }}
+                >
+                  <Page
+                    pageNumber={pageNum}
+                    scale={scale}
+                    rotate={rotation}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                  />
+                </Document>
+
+                {/* Render annotations for this page */}
+                {annotations
+                  .filter(a => a.pageNumber === pageNum)
+                  .map(renderAnnotation)}
+
+                {/* Render current drawing */}
+                {pageNum === currentPage && renderCurrentDrawing()}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Pagination Dock */}
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-background/95 backdrop-blur border rounded-full shadow-lg p-2 md:p-3 z-50 flex items-center gap-2 md:gap-3">
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          onClick={() => onPageChange(currentPage - 1)}
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage <= 1}
+          className="h-8 w-8 md:h-9 md:w-9 p-0 rounded-full"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        <span className="text-sm font-medium min-w-32 text-center">
-          Page {currentPage} of {numPages}
+        <span className="text-xs md:text-sm font-medium min-w-fit px-2 md:px-3 py-1 bg-muted rounded-full">
+          {currentPage} / {numPages}
         </span>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          onClick={() => onPageChange(currentPage + 1)}
+          onClick={() => onPageChange(Math.min(numPages, currentPage + 1))}
           disabled={currentPage >= numPages}
+          className="h-8 w-8 md:h-9 md:w-9 p-0 rounded-full"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
-      </div>
-
-      {/* PDF Canvas */}
-      <div className="flex-1 w-full flex items-start justify-center overflow-auto p-8">
-        <div className="max-w-7xl w-full">
-          <div
-            ref={canvasRef}
-            className="relative mx-auto shadow-2xl rounded-md bg-white"
-            style={{
-              width: 'fit-content',
-              cursor: currentTool === 'select' ? 'default' : 'crosshair',
-            }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onClick={() => currentTool === 'select' && onAnnotationSelect(null)}
-          >
-            <Document
-              file={file}
-              onLoadSuccess={({ numPages }) => onNumPagesChange(numPages)}
-            >
-              <Page
-                pageNumber={currentPage}
-                scale={scale}
-                rotate={rotation}
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
-              />
-            </Document>
-
-            {/* Render annotations for current page */}
-            {annotations
-              .filter(a => a.pageNumber === currentPage)
-              .map(renderAnnotation)}
-
-            {/* Render current drawing */}
-            {renderCurrentDrawing()}
-          </div>
-        </div>
       </div>
     </div>
   );
