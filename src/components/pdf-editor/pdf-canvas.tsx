@@ -334,7 +334,7 @@ export function PDFCanvas({
         <div className="max-w-7xl w-full">
           <div
             ref={canvasRef}
-            className="relative mx-auto shadow-2xl bg-white"
+            className="relative mx-auto shadow-2xl rounded-md bg-white"
             style={{
               width: 'fit-content',
               cursor: currentTool === 'select' ? 'default' : 'crosshair',

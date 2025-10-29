@@ -61,7 +61,7 @@ export function PDFSidebar({
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex p-1 flex-col overflow-hidden">
         <TabsList className="w-full grid grid-cols-2 shrink-0 text-xs sm:text-sm">
           <TabsTrigger value="pages" className="text-xs">Pages</TabsTrigger>
           <TabsTrigger value="layers" className="text-xs">Layers</TabsTrigger>
