@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { ChevronLeft, ChevronRight, GripVertical, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, GripVertical, Trash2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -36,25 +36,28 @@ export function PDFSidebar({
 
   if (!isOpen) {
     return (
-      <div className="fixed left-0 top-0 pt-16 h-screen z-40 flex flex-col">
+      <div className="fixed right-0 top-0 pt-16 h-screen z-40 flex flex-col">
         <Button
           variant="outline"
           size="sm"
           onClick={onToggle}
-          className="h-20 rounded-l-none rounded-r-lg"
+          className="h-20 rounded-r-none rounded-l-lg"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4" />
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="fixed left-0 top-0 w-56 sm:w-64 h-screen pt-16 bg-background border-r z-40 flex flex-col overflow-hidden">
+    <div className="fixed right-0 top-0 w-56 sm:w-64 h-screen pt-16 bg-background border-l z-40 flex flex-col overflow-hidden">
       <div className="flex items-center justify-between p-2 border-b shrink-0">
-        <h3 className="font-semibold text-xs sm:text-sm truncate">Document Details</h3>
+        <div className="flex items-center gap-2 min-w-0">
+          <FileText className="w-4 h-4 shrink-0" />
+          <h3 className="font-semibold text-xs sm:text-sm truncate">Document Details</h3>
+        </div>
         <Button variant="ghost" size="sm" onClick={onToggle} className="h-7 w-7 shrink-0">
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
 
@@ -90,7 +93,7 @@ export function PDFSidebar({
                       />
                     </Document>
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur p-1.5 flex items-center justify-between">
+                  <div className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur p-1 flex items-center justify-between">
                     <span className="text-xs font-medium">Page {pageNumber}</span>
                     {numPages > 1 && (
                       <Button
