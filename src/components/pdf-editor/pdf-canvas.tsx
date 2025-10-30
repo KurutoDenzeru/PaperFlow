@@ -69,11 +69,11 @@ export function PDFCanvas({
     if (pageElement && scrollContainerRef.current) {
       isScrollingProgrammaticallyRef.current = true;
       // Instant scroll for better responsiveness when clicking
-      pageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      pageElement.scrollIntoView({ behavior: 'instant', block: 'center' });
       // Reset flag after scroll completes
       setTimeout(() => {
         isScrollingProgrammaticallyRef.current = false;
-      }, 100);
+      }, 200);
     }
   }, [currentPage]);
 
@@ -155,7 +155,10 @@ export function PDFCanvas({
   };
 
   const handleMouseUp = (e: React.MouseEvent) => {
-    if (!isDrawing || !startPoint) return;
+    if (!isDrawing || !startPoint) {
+      // If not drawing, we're in select mode or just clicked
+      return;
+    }
 
     const endPoint = getRelativePosition(e);
 
@@ -425,14 +428,19 @@ export function PDFCanvas({
                   width: 'fit-content',
                   cursor: currentTool === 'select' ? 'default' : 'crosshair',
                 }}
-                onMouseDown={handleMouseDown}
+                onMouseDown={(e) => {
+                  // Check if clicking on a different page to focus it
+                  if (pageNum !== currentPage) {
+                    console.log('Mouse down on different page:', pageNum, 'Current:', currentPage);
+                    onPageChange(pageNum);
+                  }
+                  // Continue with drawing if not in select mode
+                  handleMouseDown(e);
+                }}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onClick={() => {
-                  // Focus on clicked page immediately
-                  if (pageNum !== currentPage) {
-                    onPageChange(pageNum);
-                  }
+                  console.log('Page clicked:', pageNum, 'Current page:', currentPage);
                   // Deselect annotations when clicking in select mode
                   if (currentTool === 'select') {
                     onAnnotationSelect(null);
