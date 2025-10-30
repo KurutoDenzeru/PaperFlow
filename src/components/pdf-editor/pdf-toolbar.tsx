@@ -16,7 +16,8 @@ import {
   Download,
   Trash2,
   Plus,
-  Palette
+  Palette,
+  MoreHorizontal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -25,8 +26,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { Toggle } from '@/components/ui/toggle';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Tool } from '@/types/pdf';
 
@@ -93,24 +96,30 @@ export function PDFToolbar({
     <TooltipProvider>
       <div className={`w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50 transition-all ${sidebarOpen ? 'sm:mr-0' : 'mr-0'}`}>
         <div className="flex items-center justify-between px-2 md:px-4 py-2 gap-1 md:gap-2 overflow-x-auto">
-          {/* Drawing Tools */}
-          <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
+          {/* Drawing Tools - ToggleGroup */}
+          <ToggleGroup
+            type="single"
+            value={currentTool}
+            onValueChange={(value) => {
+              if (value) onToolChange(value as Tool);
+            }}
+            className="flex items-center gap-0.5 md:gap-1 shrink-0"
+          >
             {tools.map(({ tool, icon, label }) => (
               <Tooltip key={tool}>
                 <TooltipTrigger asChild>
-                  <Toggle
-                    pressed={currentTool === tool}
-                    onPressedChange={() => onToolChange(tool)}
+                  <ToggleGroupItem
+                    value={tool}
                     size="sm"
                     className="h-8 w-8 md:h-9 md:w-9 px-1"
                   >
                     {icon}
-                  </Toggle>
+                  </ToggleGroupItem>
                 </TooltipTrigger>
                 <TooltipContent className="hidden sm:block">{label}</TooltipContent>
               </Tooltip>
             ))}
-          </div>
+          </ToggleGroup>
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden sm:block" />
 
@@ -197,8 +206,8 @@ export function PDFToolbar({
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden sm:block" />
 
-          {/* Zoom Controls */}
-          <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          {/* Zoom Controls - Hidden on small screens */}
+          <div className="hidden sm:flex items-center gap-1 md:gap-2 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -232,8 +241,8 @@ export function PDFToolbar({
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
 
-          {/* Page Actions */}
-          <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
+          {/* Page Actions - Hidden on small screens */}
+          <div className="hidden md:flex items-center gap-0.5 md:gap-1 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="sm" onClick={onAddPage} className="h-8 w-8 md:h-9 md:w-9 px-1">
@@ -268,7 +277,7 @@ export function PDFToolbar({
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
 
-          {/* Export */}
+          {/* Export - Always visible */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="default" size="sm" onClick={onExport} className="h-8 px-2 md:px-3 shrink-0 text-xs md:text-sm whitespace-nowrap">
@@ -278,6 +287,82 @@ export function PDFToolbar({
             </TooltipTrigger>
             <TooltipContent className="hidden sm:block">Export as PDF</TooltipContent>
           </Tooltip>
+
+          {/* Mobile Menu - More Options */}
+          <div className="sm:hidden ml-auto">
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 px-1">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>More options</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-48">
+                {/* Zoom Controls */}
+                <div className="px-2 py-1.5 text-sm font-medium">Zoom: {Math.round(scale * 100)}%</div>
+                <div className="px-2 py-2 flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onScaleChange(Math.max(0.5, scale - 0.25))}
+                    className="h-8 w-8 px-1"
+                  >
+                    <ZoomOut className="w-4 h-4" />
+                  </Button>
+                  <Slider
+                    value={[scale]}
+                    onValueChange={(value) => onScaleChange(value[0])}
+                    min={0.5}
+                    max={3}
+                    step={0.25}
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onScaleChange(Math.min(3, scale + 0.25))}
+                    className="h-8 w-8 px-1"
+                  >
+                    <ZoomIn className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <DropdownMenuSeparator />
+
+                {/* Stroke Width */}
+                <div className="px-2 py-1.5 text-sm font-medium">Stroke Width: {strokeWidth}</div>
+                <div className="px-2 py-2">
+                  <Slider
+                    value={[strokeWidth]}
+                    onValueChange={(value) => onStrokeWidthChange(value[0])}
+                    min={1}
+                    max={10}
+                    step={1}
+                  />
+                </div>
+
+                <DropdownMenuSeparator />
+
+                {/* Page Actions */}
+                <DropdownMenuItem onClick={onAddPage}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Page
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onRotate}>
+                  <RotateCw className="w-4 h-4 mr-2" />
+                  Rotate
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onDeleteSelected} disabled={!hasSelection}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Selected
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </TooltipProvider>
