@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { PDFDocument, rgb } from 'pdf-lib';
 import { toast } from 'sonner';
 import { PDFUploadZone } from './pdf-upload-zone';
@@ -12,7 +12,7 @@ export function PDFEditor() {
     file: null,
     numPages: 0,
     currentPage: 1,
-    scale: 1.5,
+    scale: 1.0,
     rotation: 0,
     annotations: [],
   });
@@ -24,6 +24,74 @@ export function PDFEditor() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentColor, setCurrentColor] = useState('#FF0000');
   const [strokeWidth, setStrokeWidth] = useState(2);
+
+  // Load session from localStorage on mount
+  useEffect(() => {
+    const savedSession = localStorage.getItem('pdfEditorSession');
+    if (savedSession) {
+      try {
+        const session = JSON.parse(savedSession);
+        console.log('Loaded session from localStorage:', session);
+        
+        // Only restore if file data exists
+        if (session.fileName && session.fileData) {
+          // Convert base64 back to File
+          const binaryString = atob(session.fileData);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const file = new File([bytes], session.fileName, { type: 'application/pdf' });
+          
+          setPdfState({
+            file,
+            numPages: session.numPages,
+            currentPage: session.currentPage,
+            scale: session.scale,
+            rotation: session.rotation,
+            annotations: session.annotations,
+          });
+          
+          setHistory([session.annotations]);
+          setHistoryIndex(0);
+          
+          toast.success('Session restored!');
+        }
+      } catch (error) {
+        console.error('Error loading session from localStorage:', error);
+        localStorage.removeItem('pdfEditorSession');
+      }
+    }
+  }, []); // Only run on mount
+
+  // Save session to localStorage whenever state changes
+  useEffect(() => {
+    if (!pdfState.file || pdfState.numPages === 0) return;
+
+    const file = pdfState.file; // Capture in variable to ensure it's not null
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = (e.target?.result as string)?.split(',')[1];
+      if (base64) {
+        const session = {
+          fileName: file.name,
+          fileData: base64,
+          numPages: pdfState.numPages,
+          currentPage: pdfState.currentPage,
+          scale: pdfState.scale,
+          rotation: pdfState.rotation,
+          annotations: pdfState.annotations,
+          timestamp: new Date().toISOString(),
+        };
+        localStorage.setItem('pdfEditorSession', JSON.stringify(session));
+        console.log('Saved session to localStorage');
+      }
+    };
+    reader.onerror = () => {
+      console.error('Error reading file for localStorage');
+    };
+    reader.readAsDataURL(file);
+  }, [pdfState]);
 
   const addToHistory = useCallback((annotations: Annotation[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
