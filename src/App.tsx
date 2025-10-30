@@ -5,7 +5,7 @@ function App() {
   return (
     <>
       <PDFEditor />
-      <Toaster position="top-right" />
+      <Toaster position="bottom-right" />
     </>
   )
 }
