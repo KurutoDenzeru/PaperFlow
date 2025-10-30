@@ -68,11 +68,12 @@ export function PDFCanvas({
     const pageElement = pageRefsMap.current[currentPage];
     if (pageElement && scrollContainerRef.current) {
       isScrollingProgrammaticallyRef.current = true;
+      // Instant scroll for better responsiveness when clicking
       pageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       // Reset flag after scroll completes
       setTimeout(() => {
         isScrollingProgrammaticallyRef.current = false;
-      }, 1000);
+      }, 100);
     }
   }, [currentPage]);
 
@@ -403,10 +404,13 @@ export function PDFCanvas({
       {/* PDF Canvas - Continuous Scroll */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 w-full overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-24"
+        className="flex-1 w-full overflow-auto p-4 md:p-8 pb-24"
+        style={{
+          scrollBehavior: 'auto', // Natural scroll for user, programmatic scroll is instant
+        }}
       >
         <div className="flex flex-col items-center w-full">
-          <div className="space-y-8 w-full max-w-7xl">
+          <div className="space-y-8">
             {Array.from({ length: pagesToRender }, (_, i) => i + 1).map((pageNum) => (
               <div
                 key={pageNum}
@@ -414,8 +418,8 @@ export function PDFCanvas({
                 ref={(el) => {
                   pageRefsMap.current[pageNum] = el;
                 }}
-                className={`relative mx-auto rounded-md bg-white overflow-hidden transition-all ${
-                  pageNum === currentPage ? 'border-2 border-gray-400' : 'border border-gray-200'
+                className={`relative mx-auto rounded-md bg-white overflow-hidden transition-all duration-300 ease-out ${
+                  pageNum === currentPage ? 'border-2 border-gray-400 shadow-lg' : 'border border-gray-200'
                 }`}
                 style={{
                   width: 'fit-content',
@@ -424,7 +428,16 @@ export function PDFCanvas({
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
-                onClick={() => currentTool === 'select' && onAnnotationSelect(null)}
+                onClick={() => {
+                  // Focus on clicked page immediately
+                  if (pageNum !== currentPage) {
+                    onPageChange(pageNum);
+                  }
+                  // Deselect annotations when clicking in select mode
+                  if (currentTool === 'select') {
+                    onAnnotationSelect(null);
+                  }
+                }}
               >
                 <Document
                   file={fileUrl}
