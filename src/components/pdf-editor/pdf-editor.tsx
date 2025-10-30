@@ -33,6 +33,10 @@ export function PDFEditor() {
   }, [history, historyIndex]);
 
   const handleFileSelect = (file: File) => {
+    console.log('File selected:', file);
+    console.log('File name:', file.name);
+    console.log('File type:', file.type);
+    console.log('File size:', file.size);
     setPdfState(prev => ({
       ...prev,
       file,
@@ -241,6 +245,12 @@ export function PDFEditor() {
   if (!pdfState.file) {
     return <PDFUploadZone onFileSelect={handleFileSelect} />;
   }
+
+  console.log('PDFEditor: Rendering editor with state:', {
+    file: pdfState.file?.name,
+    numPages: pdfState.numPages,
+    currentPage: pdfState.currentPage,
+  });
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">

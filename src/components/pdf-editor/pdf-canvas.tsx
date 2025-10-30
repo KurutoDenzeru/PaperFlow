@@ -48,6 +48,20 @@ export function PDFCanvas({
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+
+  // Create URL from file when file changes
+  useEffect(() => {
+    if (file) {
+      const url = URL.createObjectURL(file);
+      console.log('PDFCanvas: Created file URL:', url);
+      setFileUrl(url);
+      return () => {
+        console.log('PDFCanvas: Revoking file URL');
+        URL.revokeObjectURL(url);
+      };
+    }
+  }, [file]);
 
   // Scroll to the current page when it changes
   useEffect(() => {
@@ -359,12 +373,30 @@ export function PDFCanvas({
   };
 
   if (!file) {
+    console.log('PDFCanvas: No file provided');
     return (
       <div className="flex-1 flex items-center justify-center">
         <p className="text-muted-foreground">No PDF loaded</p>
       </div>
     );
   }
+
+  if (!fileUrl) {
+    console.log('PDFCanvas: File URL not ready yet');
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-muted-foreground">Loading PDF...</p>
+      </div>
+    );
+  }
+
+  console.log('PDFCanvas: Rendering with file:', file.name);
+  console.log('PDFCanvas: numPages:', numPages);
+  console.log('PDFCanvas: currentPage:', currentPage);
+
+  // Render at least one page initially even if numPages is 0
+  const pagesToRender = numPages > 0 ? numPages : 1;
+  console.log('PDFCanvas: Pages to render:', pagesToRender);
 
   return (
     <div className="flex-1 flex flex-col w-full bg-muted/30 relative overflow-hidden">
@@ -375,7 +407,7 @@ export function PDFCanvas({
       >
         <div className="flex flex-col items-center w-full">
           <div className="space-y-8 w-full max-w-7xl">
-            {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => (
+            {Array.from({ length: pagesToRender }, (_, i) => i + 1).map((pageNum) => (
               <div
                 key={pageNum}
                 data-page-num={pageNum}
@@ -395,11 +427,15 @@ export function PDFCanvas({
                 onClick={() => currentTool === 'select' && onAnnotationSelect(null)}
               >
                 <Document
-                  file={file}
+                  file={fileUrl}
                   onLoadSuccess={({ numPages }) => {
+                    console.log('PDF loaded successfully. Total pages:', numPages);
                     if (pageNum === 1) {
                       onNumPagesChange(numPages);
                     }
+                  }}
+                  onLoadError={(error) => {
+                    console.error('Error loading PDF:', error);
                   }}
                 >
                   <Page
@@ -408,6 +444,12 @@ export function PDFCanvas({
                     rotate={rotation}
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
+                    onLoadSuccess={() => {
+                      console.log('Page', pageNum, 'rendered successfully');
+                    }}
+                    onLoadError={(error) => {
+                      console.error('Error loading page', pageNum, ':', error);
+                    }}
                   />
                 </Document>
 

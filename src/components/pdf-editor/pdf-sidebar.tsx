@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { ChevronLeft, ChevronRight, GripVertical, Trash2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,20 @@ export function PDFSidebar({
   onToggle,
 }: PDFSidebarProps) {
   const [activeTab, setActiveTab] = useState('pages');
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+
+  // Create URL from file when file changes
+  useEffect(() => {
+    if (file) {
+      const url = URL.createObjectURL(file);
+      console.log('PDFSidebar: Created file URL:', url);
+      setFileUrl(url);
+      return () => {
+        console.log('PDFSidebar: Revoking file URL');
+        URL.revokeObjectURL(url);
+      };
+    }
+  }, [file]);
 
   if (!isOpen) {
     return (
@@ -70,7 +84,18 @@ export function PDFSidebar({
         <TabsContent value="pages" className="flex-1 overflow-hidden mt-0">
           <ScrollArea className="h-full w-full">
             <div className="p-1.5 sm:p-2 space-y-1.5 sm:space-y-2">
-              {file && Array.from({ length: numPages }, (_, i) => i + 1).map((pageNumber) => (
+              {!file || !fileUrl ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  Loading PDF...
+                </div>
+              ) : numPages === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  Loading pages...
+                </div>
+              ) : (
+                Array.from({ length: numPages }, (_, i) => i + 1).map((pageNumber) => {
+                  console.log('Rendering sidebar page:', pageNumber, 'of', numPages);
+                  return (
                 <div
                   key={pageNumber}
                   className={`
@@ -84,7 +109,7 @@ export function PDFSidebar({
                   onClick={() => onPageChange(pageNumber)}
                 >
                   <div className="aspect-[8.5/11] bg-muted flex items-center justify-center">
-                    <Document file={file}>
+                    <Document file={fileUrl}>
                       <Page
                         pageNumber={pageNumber}
                         width={220}
@@ -113,7 +138,8 @@ export function PDFSidebar({
                     <GripVertical className="w-4 h-4 text-muted-foreground" />
                   </div>
                 </div>
-              ))}
+              )})
+              )}
             </div>
           </ScrollArea>
         </TabsContent>

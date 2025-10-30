@@ -10,6 +10,7 @@ interface PDFUploadZoneProps {
 
 export function PDFUploadZone({ onFileSelect }: PDFUploadZoneProps) {
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    console.log('Dropped files:', acceptedFiles); // Debugging log
     const file = acceptedFiles[0];
     if (file && file.type === 'application/pdf') {
       onFileSelect(file);
