@@ -1,28 +1,28 @@
-import { 
-  MousePointer2, 
-  Type, 
-  Square, 
-  Circle, 
-  Minus, 
+import {
+  MousePointer2,
+  Type,
+  Square,
+  Circle,
+  Minus,
   MoveRight,
   Highlighter,
   Pen,
   Eraser,
   Undo,
   Redo,
-  ZoomIn,
-  ZoomOut,
   RotateCw,
   Download,
   Trash2,
   Plus,
   Palette,
-  MoreHorizontal
+  MoreHorizontal,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
@@ -55,7 +55,7 @@ interface PDFToolbarProps {
 }
 
 const colors = [
-  '#000000', '#FF0000', '#00FF00', '#0000FF', 
+  '#000000', '#FF0000', '#00FF00', '#0000FF',
   '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500',
   '#800080', '#008000', '#FFC0CB', '#A52A2A'
 ];
@@ -130,8 +130,8 @@ export function PDFToolbar({
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2 h-8 md:h-9 px-2 shrink-0">
                     <Palette className="w-4 h-4 shrink-0" />
-                    <div 
-                      className="w-3 h-3 md:w-4 md:h-4 rounded border shrink-0" 
+                    <div
+                      className="w-3 h-3 md:w-4 md:h-4 rounded border shrink-0"
                       style={{ backgroundColor: currentColor }}
                     />
                   </Button>
@@ -145,7 +145,7 @@ export function PDFToolbar({
                   <button
                     key={color}
                     className="w-8 h-8 rounded border-2 transition-all hover:scale-110"
-                    style={{ 
+                    style={{
                       backgroundColor: color,
                       borderColor: color === currentColor ? '#000' : 'transparent'
                     }}
@@ -201,41 +201,6 @@ export function PDFToolbar({
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="hidden sm:block">Redo</TooltipContent>
-            </Tooltip>
-          </div>
-
-          <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden sm:block" />
-
-          {/* Zoom Controls - Hidden on small screens */}
-          <div className="hidden sm:flex items-center gap-1 md:gap-2 shrink-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onScaleChange(Math.max(0.5, scale - 0.25))}
-                  className="h-8 w-8 md:h-9 md:w-9 px-1"
-                >
-                  <ZoomOut className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Zoom Out</TooltipContent>
-            </Tooltip>
-            <span className="text-xs md:text-sm font-medium min-w-10 md:min-w-12 text-center whitespace-nowrap">
-              {Math.round(scale * 100)}%
-            </span>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onScaleChange(Math.min(3, scale + 0.25))}
-                  className="h-8 w-8 md:h-9 md:w-9 px-1"
-                >
-                  <ZoomIn className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Zoom In</TooltipContent>
             </Tooltip>
           </div>
 
