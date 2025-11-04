@@ -37,6 +37,7 @@ export function PDFSidebar({
   const [activeTab, setActiveTab] = useState('pages');
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [draggedPageNumber, setDraggedPageNumber] = useState<number | null>(null);
+  const [dragOverPageNumber, setDragOverPageNumber] = useState<number | null>(null);
 
   // Create URL from file when file changes
   useEffect(() => {
@@ -103,22 +104,36 @@ export function PDFSidebar({
                       key={pageNumber}
                       draggable
                       onDragStart={() => setDraggedPageNumber(pageNumber)}
-                      onDragEnd={() => setDraggedPageNumber(null)}
-                      onDragOver={(e) => e.preventDefault()}
+                      onDragEnd={() => {
+                        setDraggedPageNumber(null);
+                        setDragOverPageNumber(null);
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragOverPageNumber(pageNumber);
+                      }}
+                      onDragLeave={() => setDragOverPageNumber(null)}
                       onDrop={(e) => {
                         e.preventDefault();
                         if (draggedPageNumber && draggedPageNumber !== pageNumber) {
                           onPageReorder(draggedPageNumber - 1, pageNumber - 1);
                           setDraggedPageNumber(null);
+                          setDragOverPageNumber(null);
                         }
                       }}
                       className={`
                     relative group cursor-pointer rounded-lg border-2 overflow-hidden
                     transition-all hover:shadow-md
                     ${draggedPageNumber === pageNumber ? 'opacity-50 border-primary' : ''}
+                    ${dragOverPageNumber === pageNumber && draggedPageNumber !== pageNumber
+                          ? 'border-2 border-primary/70 bg-primary/5 ring-2 ring-primary/30'
+                          : dragOverPageNumber !== pageNumber && draggedPageNumber !== pageNumber ? 'border-transparent hover:border-primary/50'
+                          : draggedPageNumber !== pageNumber ? 'border-transparent hover:border-primary/50'
+                          : ''
+                        }
                     ${currentPage === pageNumber && draggedPageNumber !== pageNumber
                           ? 'border-primary shadow-lg'
-                          : 'border-transparent hover:border-primary/50'
+                          : ''
                         }
                   `}
                       onClick={() => onPageChange(pageNumber)}
