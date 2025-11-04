@@ -32,7 +32,7 @@ export function PDFEditor() {
       try {
         const session = JSON.parse(savedSession);
         console.log('Loaded session from localStorage:', session);
-        
+
         // Only restore if file data exists
         if (session.fileName && session.fileData) {
           // Convert base64 back to File
@@ -42,7 +42,7 @@ export function PDFEditor() {
             bytes[i] = binaryString.charCodeAt(i);
           }
           const file = new File([bytes], session.fileName, { type: 'application/pdf' });
-          
+
           setPdfState({
             file,
             numPages: session.numPages,
@@ -51,10 +51,10 @@ export function PDFEditor() {
             rotation: session.rotation,
             annotations: session.annotations,
           });
-          
+
           setHistory([session.annotations]);
           setHistoryIndex(0);
-          
+
           toast.success('Session restored!');
         }
       } catch (error) {
@@ -179,8 +179,110 @@ export function PDFEditor() {
     toast.info('Add page feature - would open dialog to add blank or upload page');
   };
 
-  const handleDeletePage = (pageNumber: number) => {
-    toast.info(`Delete page ${pageNumber} - would remove page and adjust annotations`);
+  const handleDeletePage = async (pageNumber: number) => {
+    if (!pdfState.file || pageNumber < 1 || pageNumber > pdfState.numPages) {
+      toast.error('Cannot delete page');
+      return;
+    }
+
+    try {
+      const existingPdfBytes = await pdfState.file.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+      const pages = pdfDoc.getPages();
+
+      // Remove the page at the specified index
+      if (pageNumber - 1 < pages.length) {
+        pdfDoc.removePage(pageNumber - 1);
+      }
+
+      // Update annotations - remove those on deleted page and adjust others
+      const updatedAnnotations = pdfState.annotations
+        .filter(a => a.pageNumber !== pageNumber)
+        .map(a => {
+          if (a.pageNumber > pageNumber) {
+            return { ...a, pageNumber: a.pageNumber - 1 };
+          }
+          return a;
+        });
+
+      // Update PDF state
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
+      const newFile = new File([blob], pdfState.file.name, { type: 'application/pdf' });
+      const newNumPages = pdfState.numPages - 1;
+      const newCurrentPage = pageNumber > newNumPages ? newNumPages : pageNumber;
+
+      setPdfState(prev => ({
+        ...prev,
+        file: newFile,
+        numPages: newNumPages,
+        currentPage: newCurrentPage,
+        annotations: updatedAnnotations,
+      }));
+
+      addToHistory(updatedAnnotations);
+      toast.success(`Page ${pageNumber} deleted`);
+    } catch (error) {
+      console.error('Error deleting page:', error);
+      toast.error('Failed to delete page');
+    }
+  };
+
+  const handlePageReorder = async (oldIndex: number, newIndex: number) => {
+    if (!pdfState.file || oldIndex === newIndex || oldIndex < 0 || newIndex < 0 || oldIndex >= pdfState.numPages || newIndex >= pdfState.numPages) {
+      return;
+    }
+
+    try {
+      const existingPdfBytes = await pdfState.file.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+      const pages = pdfDoc.getPages();
+
+      // Get the page to move
+      const pageToMove = pages[oldIndex];
+
+      // Remove from old position
+      pdfDoc.removePage(oldIndex);
+
+      // Insert at new position
+      pdfDoc.insertPage(newIndex, pageToMove);
+
+      // Update annotations - adjust page numbers based on reordering
+      const updatedAnnotations = pdfState.annotations.map(a => {
+        if (a.pageNumber - 1 === oldIndex) {
+          // Page that moved
+          return { ...a, pageNumber: newIndex + 1 };
+        } else if (oldIndex < newIndex) {
+          // Moving down
+          if (a.pageNumber - 1 > oldIndex && a.pageNumber - 1 <= newIndex) {
+            return { ...a, pageNumber: a.pageNumber - 1 };
+          }
+        } else {
+          // Moving up
+          if (a.pageNumber - 1 < oldIndex && a.pageNumber - 1 >= newIndex) {
+            return { ...a, pageNumber: a.pageNumber + 1 };
+          }
+        }
+        return a;
+      });
+
+      // Save reordered PDF
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
+      const newFile = new File([blob], pdfState.file.name, { type: 'application/pdf' });
+
+      setPdfState(prev => ({
+        ...prev,
+        file: newFile,
+        annotations: updatedAnnotations,
+      }));
+
+      addToHistory(updatedAnnotations);
+      toast.success('Pages reordered');
+    } catch (error) {
+      console.error('Error reordering pages:', error);
+      toast.error('Failed to reorder pages');
+    }
   };
 
   const handleExport = async () => {
@@ -211,10 +313,10 @@ export function PDFEditor() {
             const colorMatch = annotation.color.match(/^#([0-9a-f]{6})$/i);
             const color = colorMatch
               ? rgb(
-                  parseInt(colorMatch[1].substr(0, 2), 16) / 255,
-                  parseInt(colorMatch[1].substr(2, 2), 16) / 255,
-                  parseInt(colorMatch[1].substr(4, 2), 16) / 255
-                )
+                parseInt(colorMatch[1].substr(0, 2), 16) / 255,
+                parseInt(colorMatch[1].substr(2, 2), 16) / 255,
+                parseInt(colorMatch[1].substr(4, 2), 16) / 255
+              )
               : rgb(1, 0, 0);
 
             switch (annotation.type) {
@@ -350,6 +452,7 @@ export function PDFEditor() {
           currentPage={pdfState.currentPage}
           onPageChange={(page) => setPdfState(prev => ({ ...prev, currentPage: page }))}
           onDeletePage={handleDeletePage}
+          onPageReorder={handlePageReorder}
           annotations={pdfState.annotations}
           onDeleteAnnotation={handleAnnotationDelete}
           isOpen={sidebarOpen}

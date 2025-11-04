@@ -15,6 +15,7 @@ interface PDFSidebarProps {
   currentPage: number;
   onPageChange: (page: number) => void;
   onDeletePage: (page: number) => void;
+  onPageReorder: (oldIndex: number, newIndex: number) => void;
   annotations: Annotation[];
   onDeleteAnnotation: (id: string) => void;
   isOpen: boolean;
@@ -27,6 +28,7 @@ export function PDFSidebar({
   currentPage,
   onPageChange,
   onDeletePage,
+  onPageReorder,
   annotations,
   onDeleteAnnotation,
   isOpen,
@@ -34,6 +36,7 @@ export function PDFSidebar({
 }: PDFSidebarProps) {
   const [activeTab, setActiveTab] = useState('pages');
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [draggedPageNumber, setDraggedPageNumber] = useState<number | null>(null);
 
   // Create URL from file when file changes
   useEffect(() => {
@@ -96,49 +99,62 @@ export function PDFSidebar({
                 Array.from({ length: numPages }, (_, i) => i + 1).map((pageNumber) => {
                   console.log('Rendering sidebar page:', pageNumber, 'of', numPages);
                   return (
-                <div
-                  key={pageNumber}
-                  className={`
+                    <div
+                      key={pageNumber}
+                      draggable
+                      onDragStart={() => setDraggedPageNumber(pageNumber)}
+                      onDragEnd={() => setDraggedPageNumber(null)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (draggedPageNumber && draggedPageNumber !== pageNumber) {
+                          onPageReorder(draggedPageNumber - 1, pageNumber - 1);
+                          setDraggedPageNumber(null);
+                        }
+                      }}
+                      className={`
                     relative group cursor-pointer rounded-lg border-2 overflow-hidden
                     transition-all hover:shadow-md
-                    ${currentPage === pageNumber
-                      ? 'border-primary shadow-lg'
-                      : 'border-transparent hover:border-primary/50'
-                    }
+                    ${draggedPageNumber === pageNumber ? 'opacity-50 border-primary' : ''}
+                    ${currentPage === pageNumber && draggedPageNumber !== pageNumber
+                          ? 'border-primary shadow-lg'
+                          : 'border-transparent hover:border-primary/50'
+                        }
                   `}
-                  onClick={() => onPageChange(pageNumber)}
-                >
-                  <div className="aspect-[8.5/11] bg-muted flex items-center justify-center">
-                    <Document file={fileUrl}>
-                      <Page
-                        pageNumber={pageNumber}
-                        width={200}
-                        renderTextLayer={false}
-                        renderAnnotationLayer={false}
-                      />
-                    </Document>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur p-1 flex items-center justify-between">
-                    <span className="text-xs font-medium">Page {pageNumber}</span>
-                    {numPages > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeletePage(pageNumber);
-                        }}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
-                  <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-move">
-                    <GripVertical className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                </div>
-              )})
+                      onClick={() => onPageChange(pageNumber)}
+                    >
+                      <div className="aspect-[8.5/11] bg-muted flex items-center justify-center">
+                        <Document file={fileUrl}>
+                          <Page
+                            pageNumber={pageNumber}
+                            width={200}
+                            renderTextLayer={false}
+                            renderAnnotationLayer={false}
+                          />
+                        </Document>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur p-1 flex items-center justify-between">
+                        <span className="text-xs font-medium">Page {pageNumber}</span>
+                        {numPages > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeletePage(pageNumber);
+                            }}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-move">
+                        <GripVertical className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    </div>
+                  )
+                })
               )}
             </div>
           </ScrollArea>
