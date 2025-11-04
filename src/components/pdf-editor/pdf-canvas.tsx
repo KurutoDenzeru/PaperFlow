@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import type { Tool, Annotation, Point } from '@/types/pdf';
 
 // Set worker for pdfjs
@@ -21,6 +21,7 @@ interface PDFCanvasProps {
   selectedAnnotationId: string | null;
   onPageChange: (page: number) => void;
   onNumPagesChange: (numPages: number) => void;
+  onScaleChange: (scale: number) => void;
   currentColor: string;
   strokeWidth: number;
 }
@@ -39,6 +40,7 @@ export function PDFCanvas({
   selectedAnnotationId,
   onPageChange,
   onNumPagesChange,
+  onScaleChange,
   currentColor,
   strokeWidth,
 }: PDFCanvasProps) {
@@ -488,7 +490,8 @@ export function PDFCanvas({
       </div>
 
       {/* Floating Pagination Dock */}
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-background/95 backdrop-blur border rounded-full shadow-lg p-2 md:p-3 z-50 flex items-center gap-2 md:gap-3">
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-background/95 backdrop-blur border rounded-full shadow-lg p-2 md:p-3 z-50 flex items-center gap-1 md:gap-2">
+        {/* Page Navigation */}
         <Button
           variant="ghost"
           size="sm"
@@ -509,6 +512,32 @@ export function PDFCanvas({
           className="h-8 w-8 md:h-9 md:w-9 p-0 rounded-full"
         >
           <ChevronRight className="w-4 h-4" />
+        </Button>
+
+        {/* Separator */}
+        <div className="w-px h-6 bg-border mx-1" />
+
+        {/* Zoom Controls */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onScaleChange(Math.max(0.5, scale - 0.25))}
+          className="h-8 w-8 md:h-9 md:w-9 p-0 rounded-full"
+          title="Zoom Out"
+        >
+          <ZoomOut className="w-4 h-4" />
+        </Button>
+        <span className="text-xs md:text-sm font-medium min-w-fit px-1.5 md:px-2">
+          {Math.round(scale * 100)}%
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onScaleChange(Math.min(3, scale + 0.25))}
+          className="h-8 w-8 md:h-9 md:w-9 p-0 rounded-full"
+          title="Zoom In"
+        >
+          <ZoomIn className="w-4 h-4" />
         </Button>
       </div>
     </div>

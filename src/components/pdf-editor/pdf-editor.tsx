@@ -371,6 +371,7 @@ export function PDFEditor() {
             selectedAnnotationId={selectedAnnotationId}
             onPageChange={(page) => setPdfState(prev => ({ ...prev, currentPage: page }))}
             onNumPagesChange={(numPages) => setPdfState(prev => ({ ...prev, numPages }))}
+            onScaleChange={(scale) => setPdfState(prev => ({ ...prev, scale }))}
             currentColor={currentColor}
             strokeWidth={strokeWidth}
           />
