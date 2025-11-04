@@ -83,7 +83,7 @@ export function PDFSidebar({
 
         <TabsContent value="pages" className="flex-1 overflow-hidden mt-0">
           <ScrollArea className="h-full w-full">
-            <div className="p-1.5 sm:p-2 space-y-1.5 sm:space-y-2">
+            <div className="p-0.5 sm:p-3 space-y-2 sm:space-y-2">
               {!file || !fileUrl ? (
                 <div className="text-center py-8 text-muted-foreground text-sm">
                   Loading PDF...
@@ -112,7 +112,7 @@ export function PDFSidebar({
                     <Document file={fileUrl}>
                       <Page
                         pageNumber={pageNumber}
-                        width={220}
+                        width={200}
                         renderTextLayer={false}
                         renderAnnotationLayer={false}
                       />
