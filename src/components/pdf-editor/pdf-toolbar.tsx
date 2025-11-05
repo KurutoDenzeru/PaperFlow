@@ -96,15 +96,15 @@ export function PDFToolbar({
     <TooltipProvider>
       {/* Main Toolbar */}
       <div className={`w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-10 z-50 transition-all ${sidebarOpen ? 'sm:mr-0' : 'mr-0'}`}>
-        <div className="flex items-center justify-between px-2 md:px-4 py-2 gap-1 md:gap-2 overflow-x-auto">
-          {/* Drawing Tools - ToggleGroup */}
+        <div className="flex items-center px-2 md:px-4 py-2 gap-2 md:gap-3 overflow-x-auto">
+          {/* Drawing Tools - ToggleGroup with Enhanced Selection Styling */}
           <ToggleGroup
             type="single"
             value={currentTool}
             onValueChange={(value) => {
               if (value) onToolChange(value as Tool);
             }}
-            className="flex items-center gap-0.5 md:gap-1 shrink-0"
+            className="flex items-center gap-0.5 md:gap-1 shrink-0 bg-muted rounded-lg p-1"
           >
             {tools.map(({ tool, icon, label }) => (
               <Tooltip key={tool}>
@@ -112,7 +112,11 @@ export function PDFToolbar({
                   <ToggleGroupItem
                     value={tool}
                     size="sm"
-                    className="h-8 w-8 md:h-9 md:w-9 px-1"
+                    className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all ${
+                      currentTool === tool
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'hover:bg-background/50'
+                    }`}
                   >
                     {icon}
                   </ToggleGroupItem>
@@ -240,6 +244,9 @@ export function PDFToolbar({
               <TooltipContent className="hidden sm:block">Delete</TooltipContent>
             </Tooltip>
           </div>
+
+          {/* Spacer to push Export to the right on desktop */}
+          <div className="hidden md:flex-1" />
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
 
