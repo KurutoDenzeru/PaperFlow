@@ -95,7 +95,7 @@ export function PDFToolbar({
   return (
     <TooltipProvider>
       {/* Main Toolbar */}
-      <div className={`w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-[88px] z-50 transition-all ${sidebarOpen ? 'sm:mr-0' : 'mr-0'}`}>
+      <div className={`w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-20 z-50 transition-all ${sidebarOpen ? 'sm:mr-0' : 'mr-0'}`}>
         <div className="flex items-center justify-between px-2 md:px-4 py-2 gap-1 md:gap-2 overflow-x-auto">
           {/* Drawing Tools - ToggleGroup */}
           <ToggleGroup
