@@ -159,7 +159,7 @@ export function PDFToolbar({
 
           {/* Stroke Width */}
           <div className="hidden md:flex items-center gap-2 px-2 shrink-0">
-            <span className="text-xs text-muted-foreground whitespace-nowrap">Width:</span>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">Width:</span>
             <Slider
               value={[strokeWidth]}
               onValueChange={(value) => onStrokeWidthChange(value[0])}
@@ -168,7 +168,7 @@ export function PDFToolbar({
               step={1}
               className="w-20"
             />
-            <span className="text-xs w-4">{strokeWidth}</span>
+            <span className="text-sm w-4">{strokeWidth}</span>
           </div>
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
@@ -246,7 +246,7 @@ export function PDFToolbar({
           {/* Export - Always visible */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="default" size="sm" onClick={onExport} className="h-8 px-2 md:px-3 shrink-0 text-xs md:text-sm whitespace-nowrap">
+              <Button variant="default" size="sm" onClick={onExport} className="h-8 px-2 md:px-3 shrink-0 text-sm md:text-sm whitespace-nowrap">
                 <Download className="w-4 h-4 md:mr-2 shrink-0" />
                 <span className="hidden md:inline">Export</span>
               </Button>

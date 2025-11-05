@@ -501,7 +501,7 @@ export function PDFCanvas({
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        <span className="text-xs md:text-sm font-medium min-w-fit px-2 md:px-3 py-1 bg-muted rounded-full">
+        <span className="text-sm md:text-sm font-medium min-w-fit px-2 md:px-3 py-1 bg-muted rounded-full">
           {currentPage} / {numPages}
         </span>
         <Button
@@ -527,7 +527,7 @@ export function PDFCanvas({
         >
           <ZoomOut className="w-4 h-4" />
         </Button>
-        <span className="text-xs md:text-sm font-medium min-w-fit px-1.5 md:px-2">
+        <span className="text-sm md:text-sm font-medium min-w-fit px-1.5 md:px-2">
           {Math.round(scale * 100)}%
         </span>
         <Button

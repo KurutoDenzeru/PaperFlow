@@ -74,7 +74,7 @@ export function PDFSidebar({
       <div className="flex items-center justify-between p-2 border-b shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <FileText className="w-4 h-4 shrink-0" />
-          <h3 className="font-semibold text-xs sm:text-sm truncate">Document Details</h3>
+          <h3 className="font-semibold text-sm sm:text-sm truncate">Document Details</h3>
         </div>
         <Button variant="ghost" size="sm" onClick={onToggle} className="h-7 w-7 shrink-0">
           <ChevronRight className="w-4 h-4" />
@@ -82,9 +82,9 @@ export function PDFSidebar({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex p-1 flex-col overflow-hidden">
-        <TabsList className="w-full grid grid-cols-2 shrink-0 text-xs sm:text-sm">
-          <TabsTrigger value="pages" className="text-xs">Pages</TabsTrigger>
-          <TabsTrigger value="layers" className="text-xs">Layers</TabsTrigger>
+        <TabsList className="w-full grid grid-cols-2 shrink-0 text-sm sm:text-sm">
+          <TabsTrigger value="pages" className="text-sm">Pages</TabsTrigger>
+          <TabsTrigger value="layers" className="text-sm">Layers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pages" className="flex-1 overflow-hidden mt-0">
@@ -151,7 +151,7 @@ export function PDFSidebar({
                         </Document>
                       </div>
                       <div className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur p-1 flex items-center justify-between">
-                        <span className="text-xs font-medium">Page {pageNumber}</span>
+                        <span className="text-sm font-medium">Page {pageNumber}</span>
                         {numPages > 1 && (
                           <Button
                             variant="ghost"
@@ -200,7 +200,7 @@ export function PDFSidebar({
                           <p className="text-sm font-medium truncate">
                             {annotation.type.charAt(0).toUpperCase() + annotation.type.slice(1)}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-sm text-muted-foreground">
                             Page {annotation.pageNumber}
                           </p>
                         </div>
