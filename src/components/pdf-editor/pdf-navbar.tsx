@@ -100,7 +100,7 @@ export function PDFNavbar({
                 {/* File Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-xs px-2 py-0 h-6 hover:bg-accent">
+                    <Button variant="ghost" size="sm" className="text-sm px-2 py-0 h-6 hover:bg-accent">
                       File
                     </Button>
                   </DropdownMenuTrigger>
@@ -124,7 +124,7 @@ export function PDFNavbar({
                 {/* Edit Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-xs px-2 py-0 h-6 hover:bg-accent">
+                    <Button variant="ghost" size="sm" className="text-sm px-2 py-0 h-6 hover:bg-accent">
                       Edit
                     </Button>
                   </DropdownMenuTrigger>
@@ -148,7 +148,7 @@ export function PDFNavbar({
                 {/* Page Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-xs px-2 py-0 h-6 hover:bg-accent">
+                    <Button variant="ghost" size="sm" className="text-sm px-2 py-0 h-6 hover:bg-accent">
                       Page
                     </Button>
                   </DropdownMenuTrigger>
