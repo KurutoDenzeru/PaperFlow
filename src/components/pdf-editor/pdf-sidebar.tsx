@@ -54,7 +54,7 @@ export function PDFSidebar({
 
   if (!isOpen) {
     return (
-      <div className="fixed right-0 top-0 pt-16 h-screen z-40 flex flex-col">
+      <div className="fixed right-0 top-0 pt-24 h-screen z-40 flex flex-col">
         <Button
           variant="outline"
           size="sm"
@@ -68,7 +68,7 @@ export function PDFSidebar({
   }
 
   return (
-    <div className="fixed right-0 top-0 w-56 sm:w-64 h-screen pt-14 bg-background border-l z-40 flex flex-col overflow-hidden">
+    <div className="fixed right-0 top-0 w-56 sm:w-64 h-screen pt-24 bg-background border-l z-40 flex flex-col overflow-hidden">
       <div className="flex items-center justify-between p-2 border-b shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <FileText className="w-4 h-4 shrink-0" />
