@@ -490,55 +490,61 @@ export function PDFCanvas({
       </div>
 
       {/* Floating Pagination Dock */}
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-background/95 backdrop-blur border rounded-full shadow-lg p-2 md:p-3 z-50 flex items-center gap-1 md:gap-2">
-        {/* Page Navigation */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-          disabled={currentPage <= 1}
-          className="h-8 w-8 md:h-9 md:w-9 p-0 rounded-full"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-        <span className="text-sm md:text-sm font-medium min-w-fit px-2 md:px-3 py-1 bg-muted rounded-full">
-          {currentPage} / {numPages}
-        </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onPageChange(Math.min(numPages, currentPage + 1))}
-          disabled={currentPage >= numPages}
-          className="h-8 w-8 md:h-9 md:w-9 p-0 rounded-full"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </Button>
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 mx-auto bg-background/95 backdrop-blur border rounded-lg shadow-lg z-50 flex flex-col sm:flex-row items-center justify-center gap-2 p-2 md:p-3 max-w-[calc(100vw-2rem)] sm:max-w-none">
+        {/* Page Navigation Group */}
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage <= 1}
+            className="h-8 w-8 md:h-9 md:w-9 p-0"
+            title="Previous page"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <span className="text-xs sm:text-sm font-medium min-w-fit px-2 md:px-3 py-1 bg-muted rounded whitespace-nowrap">
+            {currentPage}/{numPages}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onPageChange(Math.min(numPages, currentPage + 1))}
+            disabled={currentPage >= numPages}
+            className="h-8 w-8 md:h-9 md:w-9 p-0"
+            title="Next page"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
 
-        {/* Separator */}
-        <div className="w-px h-6 bg-border mx-1" />
+        {/* Separator - Hidden on mobile, shown on small devices as vertical line */}
+        <div className="hidden sm:block w-px h-6 bg-border" />
 
-        {/* Zoom Controls */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onScaleChange(Math.max(0.5, scale - 0.25))}
-          className="h-8 w-8 md:h-9 md:w-9 p-0 rounded-full"
-          title="Zoom Out"
-        >
-          <ZoomOut className="w-4 h-4" />
-        </Button>
-        <span className="text-sm md:text-sm font-medium min-w-fit px-1.5 md:px-2">
-          {Math.round(scale * 100)}%
-        </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onScaleChange(Math.min(3, scale + 0.25))}
-          className="h-8 w-8 md:h-9 md:w-9 p-0 rounded-full"
-          title="Zoom In"
-        >
-          <ZoomIn className="w-4 h-4" />
-        </Button>
+        {/* Zoom Controls Group */}
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onScaleChange(Math.max(0.5, scale - 0.25))}
+            className="h-8 w-8 md:h-9 md:w-9 p-0"
+            title="Zoom out"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </Button>
+          <span className="text-xs sm:text-sm font-medium min-w-fit px-1.5 md:px-2 whitespace-nowrap">
+            {Math.round(scale * 100)}%
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onScaleChange(Math.min(3, scale + 0.25))}
+            className="h-8 w-8 md:h-9 md:w-9 p-0"
+            title="Zoom in"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
