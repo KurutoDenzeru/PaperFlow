@@ -1,5 +1,4 @@
 import { Download, Undo, Redo, Trash2, Plus, RotateCw, MoreVertical, FileIcon, RotateCcw } from 'lucide-react';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -41,7 +40,6 @@ export function PDFNavbar({
 }: PDFNavbarProps) {
   // Remove .pdf extension from display name
   const cleanFileName = fileName.endsWith('.pdf') ? fileName.slice(0, -4) : fileName;
-  const [displayName] = useState(cleanFileName);
 
   return (
     <TooltipProvider>
@@ -56,9 +54,9 @@ export function PDFNavbar({
 
             {/* Filename and Menubar Column */}
             <div className="flex flex-col items-start justify-start gap-0 flex-1 min-w-0">
-              {/* Filename */}
+              {/* Filename Display */}
               <div className="flex items-center gap-2 min-w-0 w-full">
-                <span className="text-base font-medium text-foreground truncate">{displayName}</span>
+                <span className="text-base font-medium text-foreground truncate">{cleanFileName}</span>
               </div>
 
               {/* Menubar Row - Inline with Filename */}

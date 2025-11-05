@@ -116,15 +116,11 @@ export function PDFSidebar({
                     relative group cursor-pointer rounded-lg border-2 overflow-hidden
                     transition-all hover:shadow-md
                     ${draggedPageNumber === pageNumber ? 'opacity-50 border-primary' : ''}
-                    ${dragOverPageNumber === pageNumber && draggedPageNumber !== pageNumber
+                    ${currentPage === pageNumber
+                          ? 'border-red-500 shadow-lg'
+                          : dragOverPageNumber === pageNumber && draggedPageNumber !== pageNumber
                           ? 'border-2 border-primary/70 bg-primary/5 ring-2 ring-primary/30'
-                          : dragOverPageNumber !== pageNumber && draggedPageNumber !== pageNumber ? 'border-transparent hover:border-primary/50'
-                          : draggedPageNumber !== pageNumber ? 'border-transparent hover:border-primary/50'
-                          : ''
-                        }
-                    ${currentPage === pageNumber && draggedPageNumber !== pageNumber
-                          ? 'border-primary shadow-lg'
-                          : ''
+                          : 'border-transparent hover:border-primary/50'
                         }
                   `}
                       onClick={() => onPageChange(pageNumber)}
