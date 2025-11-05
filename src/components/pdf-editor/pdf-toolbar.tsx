@@ -17,7 +17,8 @@ import {
   Palette,
   MoreHorizontal,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  PanelRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -52,6 +53,7 @@ interface PDFToolbarProps {
   strokeWidth: number;
   onStrokeWidthChange: (width: number) => void;
   sidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 const colors = [
@@ -79,6 +81,7 @@ export function PDFToolbar({
   strokeWidth,
   onStrokeWidthChange,
   sidebarOpen = true,
+  onToggleSidebar,
 }: PDFToolbarProps) {
   const tools: { tool: Tool; icon: React.ReactNode; label: string }[] = [
     { tool: 'select', icon: <MousePointer2 className="w-4 h-4" />, label: 'Select' },
@@ -260,6 +263,25 @@ export function PDFToolbar({
             </TooltipTrigger>
             <TooltipContent className="hidden sm:block">Export as PDF</TooltipContent>
           </Tooltip>
+
+          {/* Sidebar Toggle - Far right */}
+          {onToggleSidebar && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onToggleSidebar}
+                  className="h-8 w-8 md:h-9 md:w-9 px-1"
+                >
+                  <PanelRight className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="hidden sm:block">
+                {sidebarOpen ? 'Close' : 'Open'} Sidebar
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           {/* Mobile Menu - More Options */}
           <div className="sm:hidden ml-auto">

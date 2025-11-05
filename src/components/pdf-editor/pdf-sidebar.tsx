@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { ChevronLeft, ChevronRight, GripVertical, Trash2, FileText } from 'lucide-react';
+import { ChevronRight, GripVertical, Trash2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -53,18 +53,7 @@ export function PDFSidebar({
   }, [file]);
 
   if (!isOpen) {
-    return (
-      <div className="fixed right-0 top-0 pt-20 h-screen z-40 flex flex-col">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onToggle}
-          className="h-20 rounded-r-none rounded-l-lg"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-      </div>
-    );
+    return null;
   }
 
   return (

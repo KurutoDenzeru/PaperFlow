@@ -519,6 +519,7 @@ export function PDFEditor() {
         strokeWidth={strokeWidth}
         onStrokeWidthChange={setStrokeWidth}
         sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
 
       <div className="flex-1 flex overflow-hidden relative w-full">
