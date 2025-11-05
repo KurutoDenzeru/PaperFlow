@@ -40,7 +40,9 @@ export function PDFNavbar({
   hasSelection,
 }: PDFNavbarProps) {
   const [isEditingName, setIsEditingName] = useState(false);
-  const [displayName, setDisplayName] = useState(fileName);
+  // Remove .pdf extension from display name
+  const cleanFileName = fileName.endsWith('.pdf') ? fileName.slice(0, -4) : fileName;
+  const [displayName, setDisplayName] = useState(cleanFileName);
 
   const handleNameChange = (newName: string) => {
     setDisplayName(newName);
