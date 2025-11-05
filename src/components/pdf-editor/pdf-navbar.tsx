@@ -50,18 +50,18 @@ export function PDFNavbar({
   return (
     <TooltipProvider>
       <nav className="w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50 border-b">
-        <div className="flex items-start justify-between px-4 gap-4">
-          {/* Left Section - Favicon and Filename */}
-          <div className="flex flex-col items-start justify-start gap-1 py-2 flex-1 min-w-0">
-            {/* Favicon and Filename */}
-            <div className="flex items-center gap-3 shrink-0 min-w-0 w-full">
-              {/* Favicon */}
-              <div className="flex items-center justify-center w-7 h-7 rounded bg-primary/10 shrink-0">
-                <FileIcon className="w-4 h-4 text-primary" />
-              </div>
+        <div className="flex items-start justify-between px-4 gap-4 py-3">
+          {/* Left Section - Favicon and Filename + Menubar */}
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            {/* Favicon - 2x2 size (w-10 h-10) */}
+            <div className="flex items-center justify-center w-10 h-10 rounded bg-primary/10 shrink-0">
+              <FileIcon className="w-6 h-6 text-primary" />
+            </div>
 
+            {/* Filename and Menubar Column */}
+            <div className="flex flex-col items-start justify-start gap-0 flex-1 min-w-0">
               {/* Filename with Edit */}
-              <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="flex items-center gap-2 min-w-0 w-full">
                 {isEditingName ? (
                   <input
                     type="text"
@@ -94,81 +94,81 @@ export function PDFNavbar({
                   </>
                 )}
               </div>
-            </div>
 
-            {/* Menubar Row Below Filename */}
-            <div className="flex items-center gap-0.5 w-full">
-              {/* File Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-xs px-2 py-0.5 h-7 hover:bg-accent">
-                    File
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem onClick={onExport}>
-                    <Download className="w-4 h-4 mr-2" />
-                    <span>Export PDF</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onNewSession}>
-                    <FileIcon className="w-4 h-4 mr-2" />
-                    <span>New Session</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onResetSession}>
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    <span>Reset Session</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Menubar Row - Inline with Filename */}
+              <div className="flex items-center gap-0.5 w-full">
+                {/* File Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-xs px-2 py-0 h-6 hover:bg-accent">
+                      File
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem onClick={onExport}>
+                      <Download className="w-4 h-4 mr-2" />
+                      <span>Export PDF</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={onNewSession}>
+                      <FileIcon className="w-4 h-4 mr-2" />
+                      <span>New Session</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={onResetSession}>
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      <span>Reset Session</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-              {/* Edit Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-xs px-2 py-0.5 h-7 hover:bg-accent">
-                    Edit
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem onClick={onUndo} disabled={!canUndo}>
-                    <Undo className="w-4 h-4 mr-2" />
-                    <span>Undo</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onRedo} disabled={!canRedo}>
-                    <Redo className="w-4 h-4 mr-2" />
-                    <span>Redo</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onDeleteSelected} disabled={!hasSelection}>
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    <span>Delete Selected</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                {/* Edit Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-xs px-2 py-0 h-6 hover:bg-accent">
+                      Edit
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem onClick={onUndo} disabled={!canUndo}>
+                      <Undo className="w-4 h-4 mr-2" />
+                      <span>Undo</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={onRedo} disabled={!canRedo}>
+                      <Redo className="w-4 h-4 mr-2" />
+                      <span>Redo</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={onDeleteSelected} disabled={!hasSelection}>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      <span>Delete Selected</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-              {/* Page Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-xs px-2 py-0.5 h-7 hover:bg-accent">
-                    Page
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem onClick={onAddPage}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    <span>Add Page</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onRotate}>
-                    <RotateCw className="w-4 h-4 mr-2" />
-                    <span>Rotate Page</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                {/* Page Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-xs px-2 py-0 h-6 hover:bg-accent">
+                      Page
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem onClick={onAddPage}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      <span>Add Page</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={onRotate}>
+                      <RotateCw className="w-4 h-4 mr-2" />
+                      <span>Rotate Page</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
 
           {/* Right: Quick Actions */}
-          <div className="flex items-center gap-1 shrink-0 pt-2">
+          <div className="flex items-center gap-1 shrink-0 pt-1">
             {/* Desktop Quick Actions */}
             <div className="hidden md:flex items-center gap-1">
               <Tooltip>
