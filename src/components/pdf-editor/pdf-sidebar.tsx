@@ -68,7 +68,9 @@ export function PDFSidebar({
   }
 
   return (
-    <div className="fixed right-0 top-0 w-56 sm:w-64 h-screen pt-20 bg-background border-l z-40 flex flex-col overflow-hidden">
+    <div
+      className={`fixed right-0 top-[--navbar-height] w-56 sm:w-64 h-[calc(100vh-var(--navbar-height))] bg-background border-l z-40 flex flex-col overflow-hidden`}
+    >
       <div className="flex items-center justify-between p-2 border-b shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <FileText className="w-4 h-4 shrink-0" />
