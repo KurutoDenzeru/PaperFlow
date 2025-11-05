@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { PDFDocument, rgb } from 'pdf-lib';
 import { toast } from 'sonner';
 import { PDFUploadZone } from './pdf-upload-zone';
+import { PDFNavbar } from './pdf-navbar';
 import { PDFToolbar } from './pdf-toolbar';
 import { PDFSidebar } from './pdf-sidebar';
 import { PDFCanvas } from './pdf-canvas';
@@ -177,6 +178,66 @@ export function PDFEditor() {
 
   const handleAddPage = () => {
     toast.info('Add page feature - would open dialog to add blank or upload page');
+  };
+
+  const handleNewSession = () => {
+    // Clear localStorage
+    localStorage.removeItem('pdfEditorSession');
+    
+    // Reset all state
+    setPdfState({
+      file: null,
+      numPages: 0,
+      currentPage: 1,
+      scale: 1.0,
+      rotation: 0,
+      annotations: [],
+    });
+    setCurrentTool('select');
+    setSelectedAnnotationId(null);
+    setHistory([[]]);
+    setHistoryIndex(0);
+    setCurrentColor('#FF0000');
+    setStrokeWidth(2);
+    
+    toast.success('New session created');
+  };
+
+  const handleResetSession = () => {
+    const savedSession = localStorage.getItem('pdfEditorSession');
+    if (savedSession) {
+      try {
+        const session = JSON.parse(savedSession);
+        if (session.fileName && session.fileData) {
+          // Convert base64 back to File
+          const binaryString = atob(session.fileData);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const file = new File([bytes], session.fileName, { type: 'application/pdf' });
+
+          setPdfState({
+            file,
+            numPages: session.numPages,
+            currentPage: session.currentPage,
+            scale: session.scale,
+            rotation: session.rotation,
+            annotations: session.annotations,
+          });
+
+          setHistory([session.annotations]);
+          setHistoryIndex(0);
+          
+          toast.success('Session reset to last saved state');
+        }
+      } catch (error) {
+        console.error('Error resetting session:', error);
+        toast.error('Failed to reset session');
+      }
+    } else {
+      toast.info('No saved session found');
+    }
   };
 
   const handleDeletePage = async (pageNumber: number) => {
@@ -424,6 +485,21 @@ export function PDFEditor() {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
+      <PDFNavbar
+        fileName={pdfState.file?.name || 'Untitled Document'}
+        onExport={handleExport}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onDeleteSelected={handleDeleteSelected}
+        onAddPage={handleAddPage}
+        onRotate={handleRotate}
+        onNewSession={handleNewSession}
+        onResetSession={handleResetSession}
+        canUndo={historyIndex > 0}
+        canRedo={historyIndex < history.length - 1}
+        hasSelection={selectedAnnotationId !== null}
+      />
+
       <PDFToolbar
         currentTool={currentTool}
         onToolChange={setCurrentTool}
