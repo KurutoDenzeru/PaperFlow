@@ -50,7 +50,7 @@ export function PDFNavbar({
   return (
     <TooltipProvider>
       <nav className="w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50 border-b">
-        <div className="flex items-start justify-between px-4 gap-4 py-3">
+        <div className="flex items-start justify-between px-4 gap-2 py-1.5">
           {/* Left Section - Favicon and Filename + Menubar */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
             {/* Favicon - 2x2 size (w-10 h-10) */}
