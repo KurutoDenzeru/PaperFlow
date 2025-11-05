@@ -1,4 +1,4 @@
-import { Download, Undo, Redo, Trash2, Plus, RotateCw, MoreVertical, FileIcon, RotateCcw, PenLine } from 'lucide-react';
+import { Download, Undo, Redo, Trash2, Plus, RotateCw, MoreVertical, FileIcon, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,15 +39,9 @@ export function PDFNavbar({
   canRedo,
   hasSelection,
 }: PDFNavbarProps) {
-  const [isEditingName, setIsEditingName] = useState(false);
   // Remove .pdf extension from display name
   const cleanFileName = fileName.endsWith('.pdf') ? fileName.slice(0, -4) : fileName;
-  const [displayName, setDisplayName] = useState(cleanFileName);
-
-  const handleNameChange = (newName: string) => {
-    setDisplayName(newName);
-    setIsEditingName(false);
-  };
+  const [displayName] = useState(cleanFileName);
 
   return (
     <TooltipProvider>
@@ -62,39 +56,9 @@ export function PDFNavbar({
 
             {/* Filename and Menubar Column */}
             <div className="flex flex-col items-start justify-start gap-0 flex-1 min-w-0">
-              {/* Filename with Edit */}
+              {/* Filename */}
               <div className="flex items-center gap-2 min-w-0 w-full">
-                {isEditingName ? (
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    onBlur={() => handleNameChange(displayName)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleNameChange(displayName);
-                      if (e.key === 'Escape') setIsEditingName(false);
-                    }}
-                    autoFocus
-                    className="text-base font-medium text-foreground bg-transparent border-b-2 border-primary px-2 py-0 outline-none flex-1 min-w-0"
-                  />
-                ) : (
-                  <>
-                    <span className="text-base font-medium text-foreground truncate">{displayName}</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsEditingName(true)}
-                          className="h-6 w-6 p-0 shrink-0 hover:bg-muted"
-                        >
-                          <PenLine className="w-3 h-3 text-muted-foreground" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Rename document</TooltipContent>
-                    </Tooltip>
-                  </>
-                )}
+                <span className="text-base font-medium text-foreground truncate">{displayName}</span>
               </div>
 
               {/* Menubar Row - Inline with Filename */}
