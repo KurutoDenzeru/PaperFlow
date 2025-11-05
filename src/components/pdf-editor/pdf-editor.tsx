@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { PDFDocument, rgb } from 'pdf-lib';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { PDFUploadZone } from './pdf-upload-zone';
 import { PDFNavbar } from './pdf-navbar';
 import { PDFToolbar } from './pdf-toolbar';
@@ -9,6 +10,8 @@ import { PDFCanvas } from './pdf-canvas';
 import type { Tool, Annotation, PDFState } from '@/types/pdf';
 
 export function PDFEditor() {
+  const isMobile = useIsMobile();
+
   const [pdfState, setPdfState] = useState<PDFState>({
     file: null,
     numPages: 0,
@@ -25,6 +28,13 @@ export function PDFEditor() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentColor, setCurrentColor] = useState('#FF0000');
   const [strokeWidth, setStrokeWidth] = useState(2);
+
+  // Collapse sidebar on mobile by default
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [isMobile]);
 
   // Load session from localStorage on mount
   useEffect(() => {
