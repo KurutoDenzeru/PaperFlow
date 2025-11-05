@@ -513,12 +513,9 @@ export function PDFEditor() {
       <PDFToolbar
         currentTool={currentTool}
         onToolChange={setCurrentTool}
-        scale={pdfState.scale}
-        onScaleChange={(scale) => setPdfState(prev => ({ ...prev, scale }))}
         onRotate={handleRotate}
         onUndo={handleUndo}
         onRedo={handleRedo}
-        onExport={handleExport}
         onDeleteSelected={handleDeleteSelected}
         onAddPage={handleAddPage}
         canUndo={historyIndex > 0}

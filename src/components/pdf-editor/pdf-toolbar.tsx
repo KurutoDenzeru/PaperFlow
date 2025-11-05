@@ -11,13 +11,10 @@ import {
   Undo,
   Redo,
   RotateCw,
-  Download,
   Trash2,
   Plus,
   Palette,
   MoreHorizontal,
-  ZoomIn,
-  ZoomOut,
   PanelRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,12 +34,9 @@ import type { Tool } from '@/types/pdf';
 interface PDFToolbarProps {
   currentTool: Tool;
   onToolChange: (tool: Tool) => void;
-  scale: number;
-  onScaleChange: (scale: number) => void;
   onRotate: () => void;
   onUndo: () => void;
   onRedo: () => void;
-  onExport: () => void;
   onDeleteSelected: () => void;
   onAddPage: () => void;
   canUndo: boolean;
@@ -65,12 +59,9 @@ const colors = [
 export function PDFToolbar({
   currentTool,
   onToolChange,
-  scale,
-  onScaleChange,
   onRotate,
   onUndo,
   onRedo,
-  onExport,
   onDeleteSelected,
   onAddPage,
   canUndo,
@@ -248,21 +239,10 @@ export function PDFToolbar({
             </Tooltip>
           </div>
 
-          {/* Spacer to push Export to the right on desktop */}
+          {/* Spacer to push everything to the right on desktop */}
           <div className="hidden md:flex-1" />
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
-
-          {/* Export - Always visible */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="default" size="sm" onClick={onExport} className="h-8 px-2 md:px-3 shrink-0 text-sm md:text-sm whitespace-nowrap">
-                <Download className="w-4 h-4 md:mr-2 shrink-0" />
-                <span className="hidden md:inline">Export</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="hidden sm:block">Export as PDF</TooltipContent>
-          </Tooltip>
 
           {/* Sidebar Toggle - Far right */}
           {onToggleSidebar && (
@@ -297,37 +277,6 @@ export function PDFToolbar({
                 <TooltipContent>More options</TooltipContent>
               </Tooltip>
               <DropdownMenuContent align="end" className="w-48">
-                {/* Zoom Controls */}
-                <div className="px-2 py-1.5 text-sm font-medium">Zoom: {Math.round(scale * 100)}%</div>
-                <div className="px-2 py-2 flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onScaleChange(Math.max(0.5, scale - 0.25))}
-                    className="h-8 w-8 px-1"
-                  >
-                    <ZoomOut className="w-4 h-4" />
-                  </Button>
-                  <Slider
-                    value={[scale]}
-                    onValueChange={(value) => onScaleChange(value[0])}
-                    min={0.5}
-                    max={3}
-                    step={0.25}
-                    className="flex-1"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onScaleChange(Math.min(3, scale + 0.25))}
-                    className="h-8 w-8 px-1"
-                  >
-                    <ZoomIn className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                <DropdownMenuSeparator />
-
                 {/* Stroke Width */}
                 <div className="px-2 py-1.5 text-sm font-medium">Stroke Width: {strokeWidth}</div>
                 <div className="px-2 py-2">
