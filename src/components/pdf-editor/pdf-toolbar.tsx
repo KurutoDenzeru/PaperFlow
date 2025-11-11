@@ -51,6 +51,23 @@ interface PDFToolbarProps {
   onStrokeWidthChange: (width: number) => void;
   sidebarOpen?: boolean;
   onToggleSidebar?: () => void;
+  // Text formatting props
+  fontFamily?: string;
+  onFontFamilyChange?: (font: string) => void;
+  fontSize?: number;
+  onFontSizeChange?: (size: number) => void;
+  textBold?: boolean;
+  onTextBoldChange?: (bold: boolean) => void;
+  textItalic?: boolean;
+  onTextItalicChange?: (italic: boolean) => void;
+  textUnderline?: boolean;
+  onTextUnderlineChange?: (underline: boolean) => void;
+  textColor?: string;
+  onTextColorChange?: (color: string) => void;
+  backgroundColor?: string;
+  onBackgroundColorChange?: (color: string) => void;
+  textAlign?: 'left' | 'center' | 'right';
+  onTextAlignChange?: (align: 'left' | 'center' | 'right') => void;
 }
 
 const colors = [
@@ -91,6 +108,23 @@ export function PDFToolbar({
   onStrokeWidthChange,
   sidebarOpen = true,
   onToggleSidebar,
+  // Text formatting props
+  fontFamily,
+  onFontFamilyChange,
+  fontSize,
+  onFontSizeChange,
+  textBold,
+  onTextBoldChange,
+  textItalic,
+  onTextItalicChange,
+  textUnderline,
+  onTextUnderlineChange,
+  textColor,
+  onTextColorChange,
+  backgroundColor,
+  onBackgroundColorChange,
+  textAlign,
+  onTextAlignChange,
 }: PDFToolbarProps) {
 
   return (
@@ -215,6 +249,216 @@ export function PDFToolbar({
               </SelectContent>
             </Select>
           </div>
+
+          {/* Text Formatting Tools - Show only when Text tool is selected */}
+          {currentTool === 'text' && onFontFamilyChange && (
+            <>
+              <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
+
+              {/* Font Family */}
+              <div className="hidden md:flex items-center gap-2 px-2 shrink-0">
+                <Select value={fontFamily || 'Arial'} onValueChange={(value) => onFontFamilyChange(value)}>
+                  <SelectTrigger className="w-24 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Arial">Arial</SelectItem>
+                    <SelectItem value="Helvetica">Helvetica</SelectItem>
+                    <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                    <SelectItem value="Courier">Courier</SelectItem>
+                    <SelectItem value="Georgia">Georgia</SelectItem>
+                    <SelectItem value="Verdana">Verdana</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Font Size */}
+              <div className="hidden md:flex items-center gap-2 px-2 shrink-0">
+                <Select value={(fontSize || 16).toString()} onValueChange={(value) => onFontSizeChange?.(parseInt(value))}>
+                  <SelectTrigger className="w-16 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[8, 10, 12, 14, 16, 18, 20, 24, 28, 32].map((size) => (
+                      <SelectItem key={size} value={size.toString()}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Text Formatting Buttons */}
+              <div className="hidden md:flex items-center gap-0.5 md:gap-1 shrink-0">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={textBold ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => onTextBoldChange?.(!textBold)}
+                      className="h-8 w-8 md:h-9 md:w-9 px-1 font-bold"
+                    >
+                      B
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="hidden sm:block">Bold</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={textItalic ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => onTextItalicChange?.(!textItalic)}
+                      className="h-8 w-8 md:h-9 md:w-9 px-1 italic"
+                    >
+                      I
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="hidden sm:block">Italic</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={textUnderline ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => onTextUnderlineChange?.(!textUnderline)}
+                      className="h-8 w-8 md:h-9 md:w-9 px-1 underline"
+                    >
+                      U
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="hidden sm:block">Underline</TooltipContent>
+                </Tooltip>
+              </div>
+
+              {/* Text Color */}
+              <div className="hidden md:flex shrink-0">
+                <DropdownMenu>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1 h-8 md:h-9 px-2 shrink-0">
+                          <div
+                            className="w-3 h-3 md:w-4 md:h-4 rounded border shrink-0"
+                            style={{ backgroundColor: textColor || '#000000' }}
+                          />
+                          <span className="text-xs">A</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent className="hidden sm:block">Text Color</TooltipContent>
+                  </Tooltip>
+                  <DropdownMenuContent className="w-48">
+                    <div className="grid grid-cols-6 gap-2 p-2">
+                      {colors.map((color) => (
+                        <button
+                          key={color}
+                          className="w-8 h-8 rounded border-2 transition-all hover:scale-110"
+                          style={{
+                            backgroundColor: color,
+                            borderColor: color === (textColor || '#000000') ? '#000' : 'transparent'
+                          }}
+                          onClick={() => onTextColorChange?.(color)}
+                        />
+                      ))}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Background Color */}
+              <div className="hidden md:flex shrink-0">
+                <DropdownMenu>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1 h-8 md:h-9 px-2 shrink-0">
+                          <div
+                            className="w-3 h-3 md:w-4 md:h-4 rounded border shrink-0"
+                            style={{ backgroundColor: backgroundColor || 'transparent', borderColor: '#ccc' }}
+                          />
+                          <span className="text-xs">BG</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent className="hidden sm:block">Background Color</TooltipContent>
+                  </Tooltip>
+                  <DropdownMenuContent className="w-48">
+                    <div className="grid grid-cols-6 gap-2 p-2">
+                      <button
+                        className="w-8 h-8 rounded border-2 transition-all hover:scale-110 bg-white"
+                        style={{
+                          borderColor: backgroundColor === 'transparent' ? '#000' : 'transparent'
+                        }}
+                        onClick={() => onBackgroundColorChange?.('transparent')}
+                        title="No background"
+                      >
+                        ✕
+                      </button>
+                      {colors.map((color) => (
+                        <button
+                          key={color}
+                          className="w-8 h-8 rounded border-2 transition-all hover:scale-110"
+                          style={{
+                            backgroundColor: color,
+                            borderColor: color === backgroundColor ? '#000' : 'transparent'
+                          }}
+                          onClick={() => onBackgroundColorChange?.(color)}
+                        />
+                      ))}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Text Alignment */}
+              <div className="hidden md:flex items-center gap-0.5 md:gap-1 shrink-0">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={textAlign === 'left' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => onTextAlignChange?.('left')}
+                      className="h-8 w-8 md:h-9 md:w-9 px-1"
+                    >
+                      ⬅
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="hidden sm:block">Align Left</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={textAlign === 'center' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => onTextAlignChange?.('center')}
+                      className="h-8 w-8 md:h-9 md:w-9 px-1"
+                    >
+                      ⬍
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="hidden sm:block">Align Center</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={textAlign === 'right' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => onTextAlignChange?.('right')}
+                      className="h-8 w-8 md:h-9 md:w-9 px-1"
+                    >
+                      ➡
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="hidden sm:block">Align Right</TooltipContent>
+                </Tooltip>
+              </div>
+            </>
+          )}
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
 

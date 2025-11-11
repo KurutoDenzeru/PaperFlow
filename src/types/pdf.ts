@@ -30,6 +30,12 @@ export interface Annotation {
   points?: Point[];
   endPoint?: Point;
   rotation?: number;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  textColor?: string;
+  backgroundColor?: string;
+  textAlign?: 'left' | 'center' | 'right';
 }
 
 export interface PDFState {

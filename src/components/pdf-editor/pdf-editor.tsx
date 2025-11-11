@@ -29,6 +29,16 @@ export function PDFEditor() {
   const [currentColor, setCurrentColor] = useState('#FF0000');
   const [strokeWidth, setStrokeWidth] = useState(2);
 
+  // Text formatting state
+  const [fontFamily, setFontFamily] = useState('Arial');
+  const [fontSize, setFontSize] = useState(16);
+  const [textBold, setTextBold] = useState(false);
+  const [textItalic, setTextItalic] = useState(false);
+  const [textUnderline, setTextUnderline] = useState(false);
+  const [textColor, setTextColor] = useState('#000000');
+  const [backgroundColor, setBackgroundColor] = useState('transparent');
+  const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
+
   // Collapse sidebar on mobile by default
   useEffect(() => {
     if (isMobile) {
@@ -531,6 +541,23 @@ export function PDFEditor() {
         onStrokeWidthChange={setStrokeWidth}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        // Text formatting props
+        fontFamily={fontFamily}
+        onFontFamilyChange={setFontFamily}
+        fontSize={fontSize}
+        onFontSizeChange={setFontSize}
+        textBold={textBold}
+        onTextBoldChange={setTextBold}
+        textItalic={textItalic}
+        onTextItalicChange={setTextItalic}
+        textUnderline={textUnderline}
+        onTextUnderlineChange={setTextUnderline}
+        textColor={textColor}
+        onTextColorChange={setTextColor}
+        backgroundColor={backgroundColor}
+        onBackgroundColorChange={setBackgroundColor}
+        textAlign={textAlign}
+        onTextAlignChange={setTextAlign}
       />
 
       <div className="flex-1 flex overflow-hidden relative w-full">
