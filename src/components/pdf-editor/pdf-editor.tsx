@@ -522,7 +522,6 @@ export function PDFEditor() {
         onUndo={handleUndo}
         onRedo={handleRedo}
         onDeleteSelected={handleDeleteSelected}
-        onAddPage={handleAddPage}
         canUndo={historyIndex > 0}
         canRedo={historyIndex < history.length - 1}
         hasSelection={selectedAnnotationId !== null}

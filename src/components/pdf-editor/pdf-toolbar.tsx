@@ -12,7 +12,6 @@ import {
   Redo,
   RotateCw,
   Trash2,
-  Plus,
   Palette,
   MoreHorizontal,
   PanelRight
@@ -43,7 +42,6 @@ interface PDFToolbarProps {
   onUndo: () => void;
   onRedo: () => void;
   onDeleteSelected: () => void;
-  onAddPage: () => void;
   canUndo: boolean;
   canRedo: boolean;
   hasSelection: boolean;
@@ -84,7 +82,6 @@ export function PDFToolbar({
   onUndo,
   onRedo,
   onDeleteSelected,
-  onAddPage,
   canUndo,
   canRedo,
   hasSelection,
@@ -259,14 +256,6 @@ export function PDFToolbar({
           <div className="hidden md:flex items-center gap-0.5 md:gap-1 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={onAddPage} className="h-8 w-8 md:h-9 md:w-9 px-1">
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Add Page</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
                 <Button variant="ghost" size="sm" onClick={onRotate} className="h-8 w-8 md:h-9 md:w-9 px-1">
                   <RotateCw className="w-4 h-4" />
                 </Button>
@@ -347,10 +336,6 @@ export function PDFToolbar({
                 <DropdownMenuSeparator />
 
                 {/* Page Actions */}
-                <DropdownMenuItem onClick={onAddPage}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Page
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={onRotate}>
                   <RotateCw className="w-4 h-4 mr-2" />
                   Rotate
