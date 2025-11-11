@@ -33,7 +33,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import type { Tool } from '@/types/pdf';
+import type { Tool, Annotation } from '@/types/pdf';
 
 interface PDFToolbarProps {
   currentTool: Tool;
@@ -51,6 +51,8 @@ interface PDFToolbarProps {
   onStrokeWidthChange: (width: number) => void;
   sidebarOpen?: boolean;
   onToggleSidebar?: () => void;
+  selectedAnnotationId?: string | null;
+  annotations?: Annotation[];
   // Text formatting props
   fontFamily?: string;
   onFontFamilyChange?: (font: string) => void;
@@ -108,6 +110,8 @@ export function PDFToolbar({
   onStrokeWidthChange,
   sidebarOpen = true,
   onToggleSidebar,
+  selectedAnnotationId,
+  annotations = [],
   // Text formatting props
   fontFamily,
   onFontFamilyChange,
@@ -126,6 +130,9 @@ export function PDFToolbar({
   textAlign,
   onTextAlignChange,
 }: PDFToolbarProps) {
+  // Check if selected annotation is a text annotation
+  const selectedAnnotation = selectedAnnotationId && annotations ? annotations.find(a => a.id === selectedAnnotationId) : null;
+  const isTextAnnotationSelected = selectedAnnotation?.type === 'text';
 
   return (
     <TooltipProvider>
@@ -250,8 +257,8 @@ export function PDFToolbar({
             </Select>
           </div>
 
-          {/* Text Formatting Tools - Show only when Text tool is selected */}
-          {currentTool === 'text' && onFontFamilyChange && (
+          {/* Text Formatting Tools - Show when Text tool is selected OR text annotation is selected */}
+          {(currentTool === 'text' || isTextAnnotationSelected) && onFontFamilyChange && (
             <>
               <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
 

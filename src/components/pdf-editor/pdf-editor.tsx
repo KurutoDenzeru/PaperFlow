@@ -541,6 +541,8 @@ export function PDFEditor() {
         onStrokeWidthChange={setStrokeWidth}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        selectedAnnotationId={selectedAnnotationId}
+        annotations={pdfState.annotations}
         // Text formatting props
         fontFamily={fontFamily}
         onFontFamilyChange={setFontFamily}
