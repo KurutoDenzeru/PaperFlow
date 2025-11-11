@@ -27,7 +27,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Tool } from '@/types/pdf';
 
@@ -56,9 +55,10 @@ const colors = [
   '#800080', '#008000', '#FFC0CB', '#A52A2A'
 ];
 
-const mainTools: { tool: Tool; icon: React.ReactNode; label: string }[] = [
+const mainTools: { tool: Tool | 'shapes'; icon: React.ReactNode; label: string }[] = [
   { tool: 'select', icon: <MousePointer2 className="w-4 h-4" />, label: 'Select' },
   { tool: 'text', icon: <Type className="w-4 h-4" />, label: 'Text' },
+  { tool: 'shapes', icon: <Square className="w-4 h-4" />, label: 'Shapes' },
   { tool: 'highlight', icon: <Highlighter className="w-4 h-4" />, label: 'Highlight' },
   { tool: 'pen', icon: <Pen className="w-4 h-4" />, label: 'Pen' },
   { tool: 'eraser', icon: <Eraser className="w-4 h-4" />, label: 'Eraser' },
@@ -95,75 +95,71 @@ export function PDFToolbar({
       {/* Main Toolbar */}
       <div className={`w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-10 z-50 transition-all ${sidebarOpen ? 'sm:mr-0' : 'mr-0'}`}>
         <div className="flex items-center px-2 md:px-4 py-2 gap-2 md:gap-3 overflow-x-auto">
-          {/* Drawing Tools - Main Tools ToggleGroup */}
-          <ToggleGroup
-            type="single"
-            value={currentTool}
-            onValueChange={(value) => {
-              if (value) onToolChange(value as Tool);
-            }}
-            className="flex items-center gap-0.5 md:gap-1 shrink-0 bg-muted rounded-lg p-1"
-          >
-            {mainTools.map(({ tool, icon, label }) => (
-              <Tooltip key={tool}>
-                <TooltipTrigger asChild>
-                  <ToggleGroupItem
-                    value={tool}
-                    size="sm"
-                    className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all ${
-                      currentTool === tool
-                        ? 'bg-primary text-primary-foreground shadow-md'
-                        : 'hover:bg-background/50'
-                    }`}
-                  >
-                    {icon}
-                  </ToggleGroupItem>
-                </TooltipTrigger>
-                <TooltipContent className="hidden sm:block">{label}</TooltipContent>
-              </Tooltip>
-            ))}
-          </ToggleGroup>
+          {/* Drawing Tools - Main Tools with Shapes Dropdown */}
+          <div className="flex items-center gap-0.5 md:gap-1 shrink-0 bg-muted rounded-lg p-1">
+            {mainTools.map(({ tool, icon, label }) => {
+              // Handle shapes dropdown
+              if (tool === 'shapes') {
+                return (
+                  <DropdownMenu key={tool}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center ${
+                              shapeTools.some(t => t.tool === currentTool)
+                                ? 'bg-primary text-primary-foreground shadow-md'
+                                : 'hover:bg-background/50'
+                            }`}
+                          >
+                            {icon}
+                          </button>
+                        </DropdownMenuTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent className="hidden sm:block">{label}</TooltipContent>
+                    </Tooltip>
+                    <DropdownMenuContent className="w-full min-w-56">
+                      <div className="grid grid-cols-2 gap-2 p-2">
+                        {shapeTools.map(({ tool: shapeTool, icon: shapeIcon, label: shapeLabel }) => (
+                          <button
+                            key={shapeTool}
+                            onClick={() => onToolChange(shapeTool)}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                              currentTool === shapeTool
+                                ? 'bg-primary text-primary-foreground shadow-md'
+                                : 'bg-muted hover:bg-muted/80'
+                            }`}
+                          >
+                            {shapeIcon}
+                            <span>{shapeLabel}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                );
+              }
 
-          {/* Shapes Dropdown */}
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant={shapeTools.some(t => t.tool === currentTool) ? "default" : "outline"}
-                    size="sm"
-                    className={`gap-2 h-8 md:h-9 px-2 shrink-0 ${
-                      shapeTools.some(t => t.tool === currentTool)
-                        ? 'bg-primary text-primary-foreground'
-                        : ''
-                    }`}
-                  >
-                    <Square className="w-4 h-4" />
-                    <span className="hidden sm:inline text-sm">Shapes</span>
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Shapes</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent className="w-full min-w-56">
-              <div className="grid grid-cols-2 gap-2 p-2">
-                {shapeTools.map(({ tool, icon, label }) => (
-                  <button
-                    key={tool}
-                    onClick={() => onToolChange(tool)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      currentTool === tool
-                        ? 'bg-primary text-primary-foreground shadow-md'
-                        : 'bg-muted hover:bg-muted/80'
-                    }`}
-                  >
-                    {icon}
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              // Regular toggle items
+              return (
+                <Tooltip key={tool}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => onToolChange(tool as Tool)}
+                      className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center ${
+                        currentTool === tool
+                          ? 'bg-primary text-primary-foreground shadow-md'
+                          : 'hover:bg-background/50'
+                      }`}
+                    >
+                      {icon}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="hidden sm:block">{label}</TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden sm:block" />
 
