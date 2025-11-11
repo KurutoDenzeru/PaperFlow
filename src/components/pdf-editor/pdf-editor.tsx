@@ -595,6 +595,14 @@ export function PDFEditor() {
             onScaleChange={(scale) => setPdfState(prev => ({ ...prev, scale }))}
             currentColor={currentColor}
             strokeWidth={strokeWidth}
+            fontFamily={fontFamily}
+            fontSize={fontSize}
+            textBold={textBold}
+            textItalic={textItalic}
+            textUnderline={textUnderline}
+            textColor={textColor}
+            backgroundColor={backgroundColor}
+            textAlign={textAlign}
           />
         </div>
       </div>

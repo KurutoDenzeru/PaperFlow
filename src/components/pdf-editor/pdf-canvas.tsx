@@ -25,6 +25,14 @@ interface PDFCanvasProps {
   onScaleChange: (scale: number) => void;
   currentColor: string;
   strokeWidth: number;
+  fontFamily?: string;
+  fontSize?: number;
+  textBold?: boolean;
+  textItalic?: boolean;
+  textUnderline?: boolean;
+  textColor?: string;
+  backgroundColor?: string;
+  textAlign?: 'left' | 'center' | 'right';
 }
 
 export function PDFCanvas({
@@ -45,6 +53,14 @@ export function PDFCanvas({
   onScaleChange,
   currentColor,
   strokeWidth,
+  fontFamily,
+  fontSize,
+  textBold,
+  textItalic,
+  textUnderline,
+  textColor,
+  backgroundColor,
+  textAlign,
 }: PDFCanvasProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pageRefsMap = useRef<Record<number, HTMLDivElement | null>>({});
@@ -214,8 +230,14 @@ export function PDFCanvas({
     switch (currentTool) {
       case 'text':
         annotation.text = 'Double click to edit';
-        annotation.fontSize = 16;
-        annotation.fontFamily = 'Arial';
+        annotation.fontSize = fontSize || 16;
+        annotation.fontFamily = fontFamily || 'Arial';
+        annotation.textColor = textColor || '#000000';
+        annotation.bold = textBold || false;
+        annotation.italic = textItalic || false;
+        annotation.underline = textUnderline || false;
+        annotation.backgroundColor = backgroundColor || 'transparent';
+        annotation.textAlign = textAlign || 'left';
         break;
       case 'rectangle':
       case 'circle':
@@ -660,9 +682,18 @@ export function PDFCanvas({
                 ...commonProps.style,
                 left: annotation.position.x,
                 top: annotation.position.y,
-                color: annotation.color,
+                color: annotation.textColor || annotation.color,
                 fontSize: annotation.fontSize,
                 fontFamily: annotation.fontFamily,
+                fontWeight: annotation.bold ? 'bold' : 'normal',
+                fontStyle: annotation.italic ? 'italic' : 'normal',
+                textDecoration: annotation.underline ? 'underline' : 'none',
+                backgroundColor: annotation.backgroundColor && annotation.backgroundColor !== 'transparent' ? annotation.backgroundColor : 'transparent',
+                padding: annotation.backgroundColor && annotation.backgroundColor !== 'transparent' ? '2px 4px' : '0',
+                borderRadius: annotation.backgroundColor && annotation.backgroundColor !== 'transparent' ? '2px' : '0',
+                textAlign: annotation.textAlign || 'left',
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word',
               }}
               onDoubleClick={(e) => {
                 e.stopPropagation();

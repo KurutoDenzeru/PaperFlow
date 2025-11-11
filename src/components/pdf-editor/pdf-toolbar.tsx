@@ -14,7 +14,10 @@ import {
   Trash2,
   Palette,
   MoreHorizontal,
-  PanelRight
+  PanelRight,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -295,20 +298,24 @@ export function PDFToolbar({
                 </Select>
               </div>
 
-              {/* Text Formatting Buttons */}
-              <div className="hidden md:flex items-center gap-0.5 md:gap-1 shrink-0">
+              {/* Text Formatting Buttons - Bold, Italic, Underline */}
+              <div className="hidden md:flex items-center gap-0.5 md:gap-1 shrink-0 bg-muted rounded-lg p-1">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant={textBold ? 'default' : 'ghost'}
                       size="sm"
-                      onClick={() => onTextBoldChange?.(!textBold)}
-                      className="h-8 w-8 md:h-9 md:w-9 px-1 font-bold"
+                      onClick={() => {
+                        if (onTextBoldChange) {
+                          onTextBoldChange(!textBold);
+                        }
+                      }}
+                      className="h-8 w-8 md:h-9 md:w-9 px-0"
                     >
-                      B
+                      <span className="font-bold">B</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="hidden sm:block">Bold</TooltipContent>
+                  <TooltipContent className="hidden sm:block">Bold (Ctrl+B)</TooltipContent>
                 </Tooltip>
 
                 <Tooltip>
@@ -316,13 +323,17 @@ export function PDFToolbar({
                     <Button
                       variant={textItalic ? 'default' : 'ghost'}
                       size="sm"
-                      onClick={() => onTextItalicChange?.(!textItalic)}
-                      className="h-8 w-8 md:h-9 md:w-9 px-1 italic"
+                      onClick={() => {
+                        if (onTextItalicChange) {
+                          onTextItalicChange(!textItalic);
+                        }
+                      }}
+                      className="h-8 w-8 md:h-9 md:w-9 px-0"
                     >
-                      I
+                      <span className="italic">I</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="hidden sm:block">Italic</TooltipContent>
+                  <TooltipContent className="hidden sm:block">Italic (Ctrl+I)</TooltipContent>
                 </Tooltip>
 
                 <Tooltip>
@@ -330,28 +341,28 @@ export function PDFToolbar({
                     <Button
                       variant={textUnderline ? 'default' : 'ghost'}
                       size="sm"
-                      onClick={() => onTextUnderlineChange?.(!textUnderline)}
-                      className="h-8 w-8 md:h-9 md:w-9 px-1 underline"
+                      onClick={() => {
+                        if (onTextUnderlineChange) {
+                          onTextUnderlineChange(!textUnderline);
+                        }
+                      }}
+                      className="h-8 w-8 md:h-9 md:w-9 px-0"
                     >
-                      U
+                      <span className="underline">U</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="hidden sm:block">Underline</TooltipContent>
+                  <TooltipContent className="hidden sm:block">Underline (Ctrl+U)</TooltipContent>
                 </Tooltip>
               </div>
 
-              {/* Text Color */}
+              {/* Text Color Picker with Icon */}
               <div className="hidden md:flex shrink-0">
                 <DropdownMenu>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1 h-8 md:h-9 px-2 shrink-0">
-                          <div
-                            className="w-3 h-3 md:w-4 md:h-4 rounded border shrink-0"
-                            style={{ backgroundColor: textColor || '#000000' }}
-                          />
-                          <span className="text-xs">A</span>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 px-0 shrink-0">
+                          <Palette className="w-4 h-4" style={{ color: textColor || '#000000' }} />
                         </Button>
                       </DropdownMenuTrigger>
                     </TooltipTrigger>
@@ -362,12 +373,16 @@ export function PDFToolbar({
                       {colors.map((color) => (
                         <button
                           key={color}
-                          className="w-8 h-8 rounded border-2 transition-all hover:scale-110"
+                          className="w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer"
                           style={{
                             backgroundColor: color,
                             borderColor: color === (textColor || '#000000') ? '#000' : 'transparent'
                           }}
-                          onClick={() => onTextColorChange?.(color)}
+                          onClick={() => {
+                            if (onTextColorChange) {
+                              onTextColorChange(color);
+                            }
+                          }}
                         />
                       ))}
                     </div>
@@ -375,18 +390,19 @@ export function PDFToolbar({
                 </DropdownMenu>
               </div>
 
-              {/* Background Color */}
+              {/* Background Color Picker with Icon */}
               <div className="hidden md:flex shrink-0">
                 <DropdownMenu>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1 h-8 md:h-9 px-2 shrink-0">
-                          <div
-                            className="w-3 h-3 md:w-4 md:h-4 rounded border shrink-0"
-                            style={{ backgroundColor: backgroundColor || 'transparent', borderColor: '#ccc' }}
-                          />
-                          <span className="text-xs">BG</span>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 px-0 shrink-0 relative">
+                          <div className="w-4 h-4 rounded border border-foreground/30 flex items-center justify-center"
+                            style={{ 
+                              backgroundColor: backgroundColor === 'transparent' ? 'transparent' : backgroundColor,
+                              backgroundImage: backgroundColor === 'transparent' ? 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)' : 'none'
+                            }}>
+                          </div>
                         </Button>
                       </DropdownMenuTrigger>
                     </TooltipTrigger>
@@ -395,11 +411,16 @@ export function PDFToolbar({
                   <DropdownMenuContent className="w-48">
                     <div className="grid grid-cols-6 gap-2 p-2">
                       <button
-                        className="w-8 h-8 rounded border-2 transition-all hover:scale-110 bg-white"
+                        className="w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center"
                         style={{
-                          borderColor: backgroundColor === 'transparent' ? '#000' : 'transparent'
+                          borderColor: backgroundColor === 'transparent' ? '#000' : 'transparent',
+                          backgroundImage: 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)'
                         }}
-                        onClick={() => onBackgroundColorChange?.('transparent')}
+                        onClick={() => {
+                          if (onBackgroundColorChange) {
+                            onBackgroundColorChange('transparent');
+                          }
+                        }}
                         title="No background"
                       >
                         ✕
@@ -407,12 +428,16 @@ export function PDFToolbar({
                       {colors.map((color) => (
                         <button
                           key={color}
-                          className="w-8 h-8 rounded border-2 transition-all hover:scale-110"
+                          className="w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer"
                           style={{
                             backgroundColor: color,
                             borderColor: color === backgroundColor ? '#000' : 'transparent'
                           }}
-                          onClick={() => onBackgroundColorChange?.(color)}
+                          onClick={() => {
+                            if (onBackgroundColorChange) {
+                              onBackgroundColorChange(color);
+                            }
+                          }}
                         />
                       ))}
                     </div>
@@ -420,49 +445,57 @@ export function PDFToolbar({
                 </DropdownMenu>
               </div>
 
-              {/* Text Alignment */}
-              <div className="hidden md:flex items-center gap-0.5 md:gap-1 shrink-0">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={textAlign === 'left' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => onTextAlignChange?.('left')}
-                      className="h-8 w-8 md:h-9 md:w-9 px-1"
+              {/* Text Alignment Dropdown */}
+              <div className="hidden md:flex shrink-0">
+                <DropdownMenu>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 px-0 shrink-0">
+                          {textAlign === 'left' && <AlignLeft className="w-4 h-4" />}
+                          {textAlign === 'center' && <AlignCenter className="w-4 h-4" />}
+                          {textAlign === 'right' && <AlignRight className="w-4 h-4" />}
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent className="hidden sm:block">Text Alignment</TooltipContent>
+                  </Tooltip>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (onTextAlignChange) {
+                          onTextAlignChange('left');
+                        }
+                      }}
+                      className={textAlign === 'left' ? 'bg-accent' : ''}
                     >
-                      ⬅
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="hidden sm:block">Align Left</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={textAlign === 'center' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => onTextAlignChange?.('center')}
-                      className="h-8 w-8 md:h-9 md:w-9 px-1"
+                      <AlignLeft className="w-4 h-4 mr-2" />
+                      <span>Align Left</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (onTextAlignChange) {
+                          onTextAlignChange('center');
+                        }
+                      }}
+                      className={textAlign === 'center' ? 'bg-accent' : ''}
                     >
-                      ⬍
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="hidden sm:block">Align Center</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={textAlign === 'right' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => onTextAlignChange?.('right')}
-                      className="h-8 w-8 md:h-9 md:w-9 px-1"
+                      <AlignCenter className="w-4 h-4 mr-2" />
+                      <span>Align Center</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (onTextAlignChange) {
+                          onTextAlignChange('right');
+                        }
+                      }}
+                      className={textAlign === 'right' ? 'bg-accent' : ''}
                     >
-                      ➡
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="hidden sm:block">Align Right</TooltipContent>
-                </Tooltip>
+                      <AlignRight className="w-4 h-4 mr-2" />
+                      <span>Align Right</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </>
           )}
