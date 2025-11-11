@@ -17,6 +17,7 @@ interface PDFCanvasProps {
   annotations: Annotation[];
   onAnnotationAdd: (annotation: Omit<Annotation, 'id'>) => void;
   onAnnotationUpdate: (id: string, updates: Partial<Annotation>) => void;
+  onAnnotationDelete: (id: string) => void;
   onAnnotationSelect: (id: string | null) => void;
   selectedAnnotationId: string | null;
   onPageChange: (page: number) => void;
@@ -36,6 +37,7 @@ export function PDFCanvas({
   annotations,
   onAnnotationAdd,
   onAnnotationUpdate,
+  onAnnotationDelete,
   onAnnotationSelect,
   selectedAnnotationId,
   onPageChange,
@@ -143,6 +145,24 @@ export function PDFCanvas({
       observer.disconnect();
     };
   }, [numPages, onPageChange]);
+
+  // Handle keyboard events for deletion
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Delete selected annotation when Delete or Backspace is pressed
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedAnnotationId) {
+        e.preventDefault();
+        onAnnotationDelete(selectedAnnotationId);
+        onAnnotationSelect(null);
+      }
+    };
+
+    // Add event listener to window
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedAnnotationId, onAnnotationDelete, onAnnotationSelect]);
 
   const getRelativePosition = useCallback((e: React.MouseEvent): Point => {
     const target = e.currentTarget as HTMLDivElement;

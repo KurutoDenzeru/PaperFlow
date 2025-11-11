@@ -559,6 +559,7 @@ export function PDFEditor() {
             annotations={pdfState.annotations}
             onAnnotationAdd={handleAnnotationAdd}
             onAnnotationUpdate={handleAnnotationUpdate}
+            onAnnotationDelete={handleAnnotationDelete}
             onAnnotationSelect={setSelectedAnnotationId}
             selectedAnnotationId={selectedAnnotationId}
             onPageChange={(page) => setPdfState(prev => ({ ...prev, currentPage: page }))}
