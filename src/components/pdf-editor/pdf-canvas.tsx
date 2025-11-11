@@ -57,6 +57,13 @@ export function PDFCanvas({
   const [dragAnnotationId, setDragAnnotationId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<Point>({ x: 0, y: 0 });
 
+  // Resize state for resizing annotations
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeAnnotationId, setResizeAnnotationId] = useState<string | null>(null);
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const [resizeStartPos, setResizeStartPos] = useState<Point>({ x: 0, y: 0 });
+  const [resizeStartBounds, setResizeStartBounds] = useState<{ x: number; y: number; width: number; height: number }>({ x: 0, y: 0, width: 0, height: 0 });
+
   // Create URL from file when file changes
   useEffect(() => {
     if (file) {
@@ -281,6 +288,119 @@ export function PDFCanvas({
     setDragOffset({ x: 0, y: 0 });
   };
 
+  // Resize handlers for resizing annotations
+  const handleResizeMouseDown = (e: React.MouseEvent, annotationId: string, handle: string) => {
+    if (currentTool !== 'select') return;
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    const pageContainer = (e.target as HTMLElement).closest('[data-page-num]');
+    if (!pageContainer) return;
+
+    const rect = pageContainer.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const annotation = annotations.find(a => a.id === annotationId);
+    if (!annotation) return;
+
+    const bounds = getAnnotationBounds(annotation);
+
+    setIsResizing(true);
+    setResizeAnnotationId(annotationId);
+    setResizeHandle(handle);
+    setResizeStartPos({ x: mouseX, y: mouseY });
+    setResizeStartBounds({ ...bounds });
+  };
+
+  const handleResizeMouseMove = (e: React.MouseEvent) => {
+    if (!isResizing || !resizeAnnotationId || !resizeHandle) return;
+
+    const annotation = annotations.find(a => a.id === resizeAnnotationId);
+    if (!annotation) return;
+
+    const pageContainer = e.currentTarget as HTMLElement;
+    const rect = pageContainer.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const deltaX = mouseX - resizeStartPos.x;
+    const deltaY = mouseY - resizeStartPos.y;
+
+    const minSize = 20;
+    let newBounds = { ...resizeStartBounds };
+
+    // Handle different resize directions
+    switch (resizeHandle) {
+      case 'tl': // top-left
+        newBounds.x += deltaX;
+        newBounds.y += deltaY;
+        newBounds.width -= deltaX;
+        newBounds.height -= deltaY;
+        break;
+      case 'tr': // top-right
+        newBounds.y += deltaY;
+        newBounds.width += deltaX;
+        newBounds.height -= deltaY;
+        break;
+      case 'bl': // bottom-left
+        newBounds.x += deltaX;
+        newBounds.width -= deltaX;
+        newBounds.height += deltaY;
+        break;
+      case 'br': // bottom-right
+        newBounds.width += deltaX;
+        newBounds.height += deltaY;
+        break;
+      case 'top': // top
+        newBounds.y += deltaY;
+        newBounds.height -= deltaY;
+        break;
+      case 'bottom': // bottom
+        newBounds.height += deltaY;
+        break;
+      case 'left': // left
+        newBounds.x += deltaX;
+        newBounds.width -= deltaX;
+        break;
+      case 'right': // right
+        newBounds.width += deltaX;
+        break;
+    }
+
+    // Enforce minimum size
+    if (newBounds.width < minSize) newBounds.width = minSize;
+    if (newBounds.height < minSize) newBounds.height = minSize;
+
+    // Update annotation based on type
+    if (annotation.type === 'rectangle' || annotation.type === 'circle' || annotation.type === 'highlight') {
+      onAnnotationUpdate(resizeAnnotationId, {
+        position: { x: newBounds.x, y: newBounds.y },
+        width: newBounds.width,
+        height: newBounds.height,
+      });
+    } else if ((annotation.type === 'line' || annotation.type === 'arrow') && annotation.endPoint) {
+      // For lines/arrows, adjust endpoint based on resize
+      const newEndPoint = {
+        x: annotation.position.x + newBounds.width,
+        y: annotation.position.y + newBounds.height,
+      };
+      onAnnotationUpdate(resizeAnnotationId, {
+        position: { x: newBounds.x, y: newBounds.y },
+        endPoint: newEndPoint,
+      });
+    }
+  };
+
+  const handleResizeMouseUp = () => {
+    setIsResizing(false);
+    setResizeAnnotationId(null);
+    setResizeHandle(null);
+    setResizeStartPos({ x: 0, y: 0 });
+    setResizeStartBounds({ x: 0, y: 0, width: 0, height: 0 });
+  };
+
   // Get bounding box for an annotation
   const getAnnotationBounds = (annotation: Annotation) => {
     switch (annotation.type) {
@@ -338,6 +458,20 @@ export function PDFCanvas({
     const bounds = getAnnotationBounds(annotation);
     const padding = 8;
 
+    const cornerHandles = [
+      { handle: 'tl', top: -4, left: -4, cursor: 'nw-resize' },
+      { handle: 'tr', top: -4, right: -4, cursor: 'ne-resize' },
+      { handle: 'bl', bottom: -4, left: -4, cursor: 'sw-resize' },
+      { handle: 'br', bottom: -4, right: -4, cursor: 'se-resize' },
+    ];
+
+    const edgeHandles = [
+      { handle: 'top', top: -4, left: '50%', transform: 'translateX(-50%)', cursor: 'n-resize' },
+      { handle: 'bottom', bottom: -4, left: '50%', transform: 'translateX(-50%)', cursor: 's-resize' },
+      { handle: 'left', top: '50%', left: -4, transform: 'translateY(-50%)', cursor: 'w-resize' },
+      { handle: 'right', top: '50%', right: -4, transform: 'translateY(-50%)', cursor: 'e-resize' },
+    ];
+
     return (
       <div
         className="absolute pointer-events-none"
@@ -351,30 +485,39 @@ export function PDFCanvas({
         }}
       >
         {/* Corner handles */}
-        {[
-          { top: -4, left: -4 },
-          { top: -4, right: -4 },
-          { bottom: -4, left: -4 },
-          { bottom: -4, right: -4 },
-        ].map((pos, i) => (
+        {cornerHandles.map((handle) => (
           <div
-            key={i}
-            className="absolute w-3 h-3 bg-white border-2 border-primary rounded-sm"
-            style={pos}
+            key={handle.handle}
+            className="absolute w-3 h-3 bg-white border-2 border-primary rounded-sm pointer-events-auto hover:bg-primary transition-colors"
+            style={{
+              ...{
+                top: handle.top,
+                left: handle.left,
+                right: handle.right,
+                bottom: handle.bottom,
+              },
+              cursor: handle.cursor,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, annotation.id, handle.handle)}
           />
         ))}
 
         {/* Edge handles */}
-        {[
-          { top: -4, left: '50%', transform: 'translateX(-50%)' },
-          { bottom: -4, left: '50%', transform: 'translateX(-50%)' },
-          { top: '50%', left: -4, transform: 'translateY(-50%)' },
-          { top: '50%', right: -4, transform: 'translateY(-50%)' },
-        ].map((pos, i) => (
+        {edgeHandles.map((handle) => (
           <div
-            key={`edge-${i}`}
-            className="absolute w-3 h-3 bg-white border-2 border-primary rounded-sm"
-            style={pos}
+            key={handle.handle}
+            className="absolute w-3 h-3 bg-white border-2 border-primary rounded-sm pointer-events-auto hover:bg-primary transition-colors"
+            style={{
+              ...{
+                top: handle.top,
+                left: handle.left,
+                right: handle.right,
+                bottom: handle.bottom,
+                transform: handle.transform,
+              },
+              cursor: handle.cursor,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, annotation.id, handle.handle)}
           />
         ))}
       </div>
@@ -626,24 +769,31 @@ export function PDFCanvas({
                   handleMouseDown(e);
                 }}
                 onMouseMove={(e) => {
-                  // Handle annotation dragging
-                  if (isDragging && currentTool === 'select') {
+                  // Handle annotation resizing
+                  if (isResizing && currentTool === 'select') {
+                    handleResizeMouseMove(e);
+                  } else if (isDragging && currentTool === 'select') {
+                    // Handle annotation dragging
                     handleAnnotationMouseMove(e);
                   } else {
                     handleMouseMove(e);
                   }
                 }}
                 onMouseUp={(e) => {
-                  // Handle annotation drag end
-                  if (isDragging) {
+                  // Handle annotation resize/drag end
+                  if (isResizing) {
+                    handleResizeMouseUp();
+                  } else if (isDragging) {
                     handleAnnotationMouseUp();
                   } else {
                     handleMouseUp(e);
                   }
                 }}
                 onMouseLeave={() => {
-                  // Stop dragging if mouse leaves the page
-                  if (isDragging) {
+                  // Stop resizing or dragging if mouse leaves the page
+                  if (isResizing) {
+                    handleResizeMouseUp();
+                  } else if (isDragging) {
                     handleAnnotationMouseUp();
                   }
                 }}
