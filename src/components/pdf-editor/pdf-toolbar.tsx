@@ -19,7 +19,13 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Slider } from '@/components/ui/slider';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -199,15 +205,18 @@ export function PDFToolbar({
           {/* Stroke Width */}
           <div className="hidden md:flex items-center gap-2 px-2 shrink-0">
             <span className="text-sm text-muted-foreground whitespace-nowrap">Width:</span>
-            <Slider
-              value={[strokeWidth]}
-              onValueChange={(value) => onStrokeWidthChange(value[0])}
-              min={1}
-              max={10}
-              step={1}
-              className="w-20"
-            />
-            <span className="text-sm w-4">{strokeWidth}</span>
+            <Select value={strokeWidth.toString()} onValueChange={(value) => onStrokeWidthChange(parseInt(value))}>
+              <SelectTrigger className="w-20 h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((width) => (
+                  <SelectItem key={width} value={width.toString()}>
+                    {width}px
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
@@ -319,15 +328,20 @@ export function PDFToolbar({
               </Tooltip>
               <DropdownMenuContent align="end" className="w-48">
                 {/* Stroke Width */}
-                <div className="px-2 py-1.5 text-sm font-medium">Stroke Width: {strokeWidth}</div>
+                <div className="px-2 py-1.5 text-sm font-medium">Stroke Width</div>
                 <div className="px-2 py-2">
-                  <Slider
-                    value={[strokeWidth]}
-                    onValueChange={(value) => onStrokeWidthChange(value[0])}
-                    min={1}
-                    max={10}
-                    step={1}
-                  />
+                  <Select value={strokeWidth.toString()} onValueChange={(value) => onStrokeWidthChange(parseInt(value))}>
+                    <SelectTrigger className="h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((width) => (
+                        <SelectItem key={width} value={width.toString()}>
+                          {width}px
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <DropdownMenuSeparator />
