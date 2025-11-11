@@ -134,6 +134,11 @@ export function PDFEditor() {
     const newAnnotations = [...pdfState.annotations, newAnnotation];
     setPdfState(prev => ({ ...prev, annotations: newAnnotations }));
     addToHistory(newAnnotations);
+
+    // Auto-switch back to select mode after placing a shape/text (not for pen or eraser)
+    if (currentTool !== 'select' && currentTool !== 'pen' && currentTool !== 'eraser') {
+      setCurrentTool('select');
+    }
   };
 
   const handleAnnotationUpdate = (id: string, updates: Partial<Annotation>) => {
@@ -193,7 +198,7 @@ export function PDFEditor() {
   const handleNewSession = () => {
     // Clear localStorage
     localStorage.removeItem('pdfEditorSession');
-    
+
     // Reset all state
     setPdfState({
       file: null,
@@ -209,7 +214,7 @@ export function PDFEditor() {
     setHistoryIndex(0);
     setCurrentColor('#FF0000');
     setStrokeWidth(2);
-    
+
     toast.success('New session created');
   };
 
@@ -238,7 +243,7 @@ export function PDFEditor() {
 
           setHistory([session.annotations]);
           setHistoryIndex(0);
-          
+
           toast.success('Session reset to last saved state');
         }
       } catch (error) {
