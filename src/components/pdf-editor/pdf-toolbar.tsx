@@ -56,6 +56,21 @@ const colors = [
   '#800080', '#008000', '#FFC0CB', '#A52A2A'
 ];
 
+const mainTools: { tool: Tool; icon: React.ReactNode; label: string }[] = [
+  { tool: 'select', icon: <MousePointer2 className="w-4 h-4" />, label: 'Select' },
+  { tool: 'text', icon: <Type className="w-4 h-4" />, label: 'Text' },
+  { tool: 'highlight', icon: <Highlighter className="w-4 h-4" />, label: 'Highlight' },
+  { tool: 'pen', icon: <Pen className="w-4 h-4" />, label: 'Pen' },
+  { tool: 'eraser', icon: <Eraser className="w-4 h-4" />, label: 'Eraser' },
+];
+
+const shapeTools: { tool: Tool; icon: React.ReactNode; label: string }[] = [
+  { tool: 'rectangle', icon: <Square className="w-4 h-4" />, label: 'Rectangle' },
+  { tool: 'circle', icon: <Circle className="w-4 h-4" />, label: 'Circle' },
+  { tool: 'line', icon: <Minus className="w-4 h-4" />, label: 'Line' },
+  { tool: 'arrow', icon: <MoveRight className="w-4 h-4" />, label: 'Arrow' },
+];
+
 export function PDFToolbar({
   currentTool,
   onToolChange,
@@ -74,24 +89,13 @@ export function PDFToolbar({
   sidebarOpen = true,
   onToggleSidebar,
 }: PDFToolbarProps) {
-  const tools: { tool: Tool; icon: React.ReactNode; label: string }[] = [
-    { tool: 'select', icon: <MousePointer2 className="w-4 h-4" />, label: 'Select' },
-    { tool: 'text', icon: <Type className="w-4 h-4" />, label: 'Text' },
-    { tool: 'rectangle', icon: <Square className="w-4 h-4" />, label: 'Rectangle' },
-    { tool: 'circle', icon: <Circle className="w-4 h-4" />, label: 'Circle' },
-    { tool: 'line', icon: <Minus className="w-4 h-4" />, label: 'Line' },
-    { tool: 'arrow', icon: <MoveRight className="w-4 h-4" />, label: 'Arrow' },
-    { tool: 'highlight', icon: <Highlighter className="w-4 h-4" />, label: 'Highlight' },
-    { tool: 'pen', icon: <Pen className="w-4 h-4" />, label: 'Pen' },
-    { tool: 'eraser', icon: <Eraser className="w-4 h-4" />, label: 'Eraser' },
-  ];
 
   return (
     <TooltipProvider>
       {/* Main Toolbar */}
       <div className={`w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-10 z-50 transition-all ${sidebarOpen ? 'sm:mr-0' : 'mr-0'}`}>
         <div className="flex items-center px-2 md:px-4 py-2 gap-2 md:gap-3 overflow-x-auto">
-          {/* Drawing Tools - ToggleGroup with Enhanced Selection Styling */}
+          {/* Drawing Tools - Main Tools ToggleGroup */}
           <ToggleGroup
             type="single"
             value={currentTool}
@@ -100,7 +104,7 @@ export function PDFToolbar({
             }}
             className="flex items-center gap-0.5 md:gap-1 shrink-0 bg-muted rounded-lg p-1"
           >
-            {tools.map(({ tool, icon, label }) => (
+            {mainTools.map(({ tool, icon, label }) => (
               <Tooltip key={tool}>
                 <TooltipTrigger asChild>
                   <ToggleGroupItem
@@ -119,6 +123,47 @@ export function PDFToolbar({
               </Tooltip>
             ))}
           </ToggleGroup>
+
+          {/* Shapes Dropdown */}
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant={shapeTools.some(t => t.tool === currentTool) ? "default" : "outline"}
+                    size="sm"
+                    className={`gap-2 h-8 md:h-9 px-2 shrink-0 ${
+                      shapeTools.some(t => t.tool === currentTool)
+                        ? 'bg-primary text-primary-foreground'
+                        : ''
+                    }`}
+                  >
+                    <Square className="w-4 h-4" />
+                    <span className="hidden sm:inline text-sm">Shapes</span>
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="hidden sm:block">Shapes</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent className="w-full min-w-56">
+              <div className="grid grid-cols-2 gap-2 p-2">
+                {shapeTools.map(({ tool, icon, label }) => (
+                  <button
+                    key={tool}
+                    onClick={() => onToolChange(tool)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      currentTool === tool
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    {icon}
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden sm:block" />
 
