@@ -64,6 +64,12 @@ export function PDFCanvas({
   const [resizeStartPos, setResizeStartPos] = useState<Point>({ x: 0, y: 0 });
   const [resizeStartBounds, setResizeStartBounds] = useState<{ x: number; y: number; width: number; height: number }>({ x: 0, y: 0, width: 0, height: 0 });
 
+  // Rotation state for rotating annotations
+  const [isRotating, setIsRotating] = useState(false);
+  const [rotateAnnotationId, setRotateAnnotationId] = useState<string | null>(null);
+  const [rotateStartAngle, setRotateStartAngle] = useState(0);
+  const [rotateStartRotation, setRotateStartRotation] = useState(0);
+
   // Create URL from file when file changes
   useEffect(() => {
     if (file) {
@@ -401,6 +407,72 @@ export function PDFCanvas({
     setResizeStartBounds({ x: 0, y: 0, width: 0, height: 0 });
   };
 
+  // Rotation handlers for rotating annotations
+  const handleRotateMouseDown = (e: React.MouseEvent, annotationId: string) => {
+    if (currentTool !== 'select') return;
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    const pageContainer = (e.target as HTMLElement).closest('[data-page-num]');
+    if (!pageContainer) return;
+
+    const annotation = annotations.find(a => a.id === annotationId);
+    if (!annotation) return;
+
+    const bounds = getAnnotationBounds(annotation);
+    const centerX = bounds.x + bounds.width / 2;
+    const centerY = bounds.y + bounds.height / 2;
+
+    const rect = pageContainer.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // Calculate initial angle from center to mouse
+    const deltaX = mouseX - centerX;
+    const deltaY = mouseY - centerY;
+    const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+
+    setIsRotating(true);
+    setRotateAnnotationId(annotationId);
+    setRotateStartAngle(angle);
+    setRotateStartRotation(annotation.rotation || 0);
+  };
+
+  const handleRotateMouseMove = (e: React.MouseEvent) => {
+    if (!isRotating || !rotateAnnotationId) return;
+
+    const annotation = annotations.find(a => a.id === rotateAnnotationId);
+    if (!annotation) return;
+
+    const pageContainer = e.currentTarget as HTMLElement;
+    const bounds = getAnnotationBounds(annotation);
+    const centerX = bounds.x + bounds.width / 2;
+    const centerY = bounds.y + bounds.height / 2;
+
+    const rect = pageContainer.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // Calculate current angle from center to mouse
+    const deltaX = mouseX - centerX;
+    const deltaY = mouseY - centerY;
+    const currentAngle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+
+    // Calculate rotation delta
+    const angleDelta = currentAngle - rotateStartAngle;
+    const newRotation = (rotateStartRotation + angleDelta) % 360;
+
+    onAnnotationUpdate(rotateAnnotationId, { rotation: newRotation });
+  };
+
+  const handleRotateMouseUp = () => {
+    setIsRotating(false);
+    setRotateAnnotationId(null);
+    setRotateStartAngle(0);
+    setRotateStartRotation(0);
+  };
+
   // Get bounding box for an annotation
   const getAnnotationBounds = (annotation: Annotation) => {
     switch (annotation.type) {
@@ -482,6 +554,9 @@ export function PDFCanvas({
           height: bounds.height + padding * 2,
           border: '2px solid #3b82f6',
           backgroundColor: 'rgba(59, 130, 246, 0.05)',
+          transform: `rotate(${annotation.rotation || 0}deg)`,
+          transformOrigin: 'center',
+          transition: 'transform 0.05s ease-out',
         }}
       >
         {/* Corner handles */}
@@ -520,6 +595,19 @@ export function PDFCanvas({
             onMouseDown={(e) => handleResizeMouseDown(e, annotation.id, handle.handle)}
           />
         ))}
+
+        {/* Rotation handle - circular handle at top center */}
+        <div
+          className="absolute w-4 h-4 bg-white border-2 border-yellow-500 rounded-full pointer-events-auto hover:bg-yellow-500 transition-colors"
+          style={{
+            top: -20,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            cursor: 'grab',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+          }}
+          onMouseDown={(e) => handleRotateMouseDown(e, annotation.id)}
+        />
       </div>
     );
   };
@@ -535,6 +623,9 @@ export function PDFCanvas({
       },
       style: {
         cursor: currentTool === 'select' ? 'move' : 'default',
+        transform: annotation.rotation ? `rotate(${annotation.rotation}deg)` : undefined,
+        transformOrigin: 'center',
+        transition: 'transform 0.05s ease-out',
       },
       className: `absolute ${isSelected && currentTool !== 'select' ? 'ring-2 ring-primary' : ''}`,
     };
@@ -769,8 +860,10 @@ export function PDFCanvas({
                   handleMouseDown(e);
                 }}
                 onMouseMove={(e) => {
-                  // Handle annotation resizing
-                  if (isResizing && currentTool === 'select') {
+                  // Handle annotation rotating
+                  if (isRotating && currentTool === 'select') {
+                    handleRotateMouseMove(e);
+                  } else if (isResizing && currentTool === 'select') {
                     handleResizeMouseMove(e);
                   } else if (isDragging && currentTool === 'select') {
                     // Handle annotation dragging
@@ -780,8 +873,10 @@ export function PDFCanvas({
                   }
                 }}
                 onMouseUp={(e) => {
-                  // Handle annotation resize/drag end
-                  if (isResizing) {
+                  // Handle annotation resize/drag/rotate end
+                  if (isRotating) {
+                    handleRotateMouseUp();
+                  } else if (isResizing) {
                     handleResizeMouseUp();
                   } else if (isDragging) {
                     handleAnnotationMouseUp();
@@ -790,8 +885,10 @@ export function PDFCanvas({
                   }
                 }}
                 onMouseLeave={() => {
-                  // Stop resizing or dragging if mouse leaves the page
-                  if (isResizing) {
+                  // Stop resizing, dragging, or rotating if mouse leaves the page
+                  if (isRotating) {
+                    handleRotateMouseUp();
+                  } else if (isResizing) {
                     handleResizeMouseUp();
                   } else if (isDragging) {
                     handleAnnotationMouseUp();

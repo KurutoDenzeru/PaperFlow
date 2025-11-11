@@ -29,6 +29,7 @@ export interface Annotation {
   opacity?: number;
   points?: Point[];
   endPoint?: Point;
+  rotation?: number;
 }
 
 export interface PDFState {
