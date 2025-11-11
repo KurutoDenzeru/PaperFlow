@@ -278,74 +278,74 @@ export function PDFToolbar({
             </Tooltip>
           </div>
 
-          {/* Spacer to push everything to the right on desktop */}
-          <div className="hidden md:flex-1" />
+          {/* Spacer to push sidebar toggle to the far right */}
+          <div className="flex-1" />
 
-          <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
-
-          {/* Sidebar Toggle - Far right */}
-          {onToggleSidebar && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onToggleSidebar}
-                  className="h-8 w-8 md:h-9 md:w-9 px-1"
-                >
-                  <PanelRight className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">
-                {sidebarOpen ? 'Close' : 'Open'} Sidebar
-              </TooltipContent>
-            </Tooltip>
-          )}
-
-          {/* Mobile Menu - More Options */}
-          <div className="sm:hidden ml-auto">
-            <DropdownMenu>
+          {/* Sidebar Toggle - Far right for desktop, left for mobile */}
+          <div className="flex items-center gap-0.5 md:gap-1 shrink-0 ml-auto md:ml-0">
+            {onToggleSidebar && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 px-1">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onToggleSidebar}
+                    className="h-8 w-8 md:h-9 md:w-9 px-1"
+                  >
+                    <PanelRight className="w-4 h-4" />
+                  </Button>
                 </TooltipTrigger>
-                <TooltipContent>More options</TooltipContent>
+                <TooltipContent className="hidden sm:block">
+                  {sidebarOpen ? 'Close' : 'Open'} Sidebar
+                </TooltipContent>
               </Tooltip>
-              <DropdownMenuContent align="end" className="w-48">
-                {/* Stroke Width */}
-                <div className="px-2 py-1.5 text-sm font-medium">Stroke Width</div>
-                <div className="px-2 py-2">
-                  <Select value={strokeWidth.toString()} onValueChange={(value) => onStrokeWidthChange(parseInt(value))}>
-                    <SelectTrigger className="h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((width) => (
-                        <SelectItem key={width} value={width.toString()}>
-                          {width}px
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            )}
 
-                <DropdownMenuSeparator />
+            {/* Mobile Menu - More Options */}
+            <div className="sm:hidden">
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 px-1">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>More options</TooltipContent>
+                </Tooltip>
+                <DropdownMenuContent align="end" className="w-48">
+                  {/* Stroke Width */}
+                  <div className="px-2 py-1.5 text-sm font-medium">Stroke Width</div>
+                  <div className="px-2 py-2">
+                    <Select value={strokeWidth.toString()} onValueChange={(value) => onStrokeWidthChange(parseInt(value))}>
+                      <SelectTrigger className="h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((width) => (
+                          <SelectItem key={width} value={width.toString()}>
+                            {width}px
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Page Actions */}
-                <DropdownMenuItem onClick={onRotate}>
-                  <RotateCw className="w-4 h-4 mr-2" />
-                  Rotate
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onDeleteSelected} disabled={!hasSelection}>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Selected
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuSeparator />
+
+                  {/* Page Actions */}
+                  <DropdownMenuItem onClick={onRotate}>
+                    <RotateCw className="w-4 h-4 mr-2" />
+                    Rotate
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onDeleteSelected} disabled={!hasSelection}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Selected
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </div>
