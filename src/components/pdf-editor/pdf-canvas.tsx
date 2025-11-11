@@ -216,25 +216,37 @@ export function PDFCanvas({
     e.stopPropagation();
     onAnnotationSelect(annotation.id);
 
-    const point = getRelativePosition(e);
+    // Get position relative to the page container (parent)
+    const pageContainer = (e.target as HTMLElement).closest('[data-page-num]');
+    if (!pageContainer) return;
+    
+    const rect = pageContainer.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
     setIsDragging(true);
     setDragAnnotationId(annotation.id);
     setDragOffset({
-      x: point.x - annotation.position.x,
-      y: point.y - annotation.position.y,
+      x: mouseX - annotation.position.x,
+      y: mouseY - annotation.position.y,
     });
   };
 
   const handleAnnotationMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !dragAnnotationId) return;
 
-    const point = getRelativePosition(e);
     const annotation = annotations.find(a => a.id === dragAnnotationId);
     if (!annotation) return;
 
+    // Get the current mouse position relative to the page
+    const pageContainer = e.currentTarget as HTMLElement;
+    const rect = pageContainer.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
     const newPosition = {
-      x: point.x - dragOffset.x,
-      y: point.y - dragOffset.y,
+      x: mouseX - dragOffset.x,
+      y: mouseY - dragOffset.y,
     };
 
     // For pen annotations, we need to update all points
@@ -627,6 +639,12 @@ export function PDFCanvas({
                     handleAnnotationMouseUp();
                   } else {
                     handleMouseUp(e);
+                  }
+                }}
+                onMouseLeave={() => {
+                  // Stop dragging if mouse leaves the page
+                  if (isDragging) {
+                    handleAnnotationMouseUp();
                   }
                 }}
                 onClick={() => {
