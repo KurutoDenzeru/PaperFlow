@@ -52,6 +52,11 @@ export function PDFCanvas({
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
 
+  // Drag state for moving annotations
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragAnnotationId, setDragAnnotationId] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState<Point>({ x: 0, y: 0 });
+
   // Create URL from file when file changes
   useEffect(() => {
     if (file) {
@@ -204,10 +209,171 @@ export function PDFCanvas({
     setCurrentPoints([]);
   };
 
+  // Drag handlers for moving annotations
+  const handleAnnotationMouseDown = (e: React.MouseEvent, annotation: Annotation) => {
+    if (currentTool !== 'select') return;
+
+    e.stopPropagation();
+    onAnnotationSelect(annotation.id);
+
+    const point = getRelativePosition(e);
+    setIsDragging(true);
+    setDragAnnotationId(annotation.id);
+    setDragOffset({
+      x: point.x - annotation.position.x,
+      y: point.y - annotation.position.y,
+    });
+  };
+
+  const handleAnnotationMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !dragAnnotationId) return;
+
+    const point = getRelativePosition(e);
+    const annotation = annotations.find(a => a.id === dragAnnotationId);
+    if (!annotation) return;
+
+    const newPosition = {
+      x: point.x - dragOffset.x,
+      y: point.y - dragOffset.y,
+    };
+
+    // For pen annotations, we need to update all points
+    if (annotation.type === 'pen' && annotation.points) {
+      const deltaX = newPosition.x - annotation.position.x;
+      const deltaY = newPosition.y - annotation.position.y;
+      const newPoints = annotation.points.map(p => ({
+        x: p.x + deltaX,
+        y: p.y + deltaY,
+      }));
+      onAnnotationUpdate(dragAnnotationId, { position: newPosition, points: newPoints });
+    }
+    // For line/arrow, update endPoint as well
+    else if ((annotation.type === 'line' || annotation.type === 'arrow') && annotation.endPoint) {
+      const deltaX = newPosition.x - annotation.position.x;
+      const deltaY = newPosition.y - annotation.position.y;
+      const newEndPoint = {
+        x: annotation.endPoint.x + deltaX,
+        y: annotation.endPoint.y + deltaY,
+      };
+      onAnnotationUpdate(dragAnnotationId, { position: newPosition, endPoint: newEndPoint });
+    }
+    // For other annotations, just update position
+    else {
+      onAnnotationUpdate(dragAnnotationId, { position: newPosition });
+    }
+  };
+
+  const handleAnnotationMouseUp = () => {
+    setIsDragging(false);
+    setDragAnnotationId(null);
+    setDragOffset({ x: 0, y: 0 });
+  };
+
+  // Get bounding box for an annotation
+  const getAnnotationBounds = (annotation: Annotation) => {
+    switch (annotation.type) {
+      case 'text':
+        // Approximate text bounds
+        return {
+          x: annotation.position.x,
+          y: annotation.position.y,
+          width: (annotation.text?.length || 0) * (annotation.fontSize || 16) * 0.6,
+          height: annotation.fontSize || 16,
+        };
+      case 'rectangle':
+      case 'circle':
+      case 'highlight':
+        return {
+          x: annotation.position.x,
+          y: annotation.position.y,
+          width: annotation.width || 0,
+          height: annotation.height || 0,
+        };
+      case 'line':
+      case 'arrow':
+        if (!annotation.endPoint) return { x: 0, y: 0, width: 0, height: 0 };
+        return {
+          x: Math.min(annotation.position.x, annotation.endPoint.x),
+          y: Math.min(annotation.position.y, annotation.endPoint.y),
+          width: Math.abs(annotation.endPoint.x - annotation.position.x),
+          height: Math.abs(annotation.endPoint.y - annotation.position.y),
+        };
+      case 'pen':
+        if (!annotation.points || annotation.points.length === 0) {
+          return { x: 0, y: 0, width: 0, height: 0 };
+        }
+        const xs = annotation.points.map(p => p.x);
+        const ys = annotation.points.map(p => p.y);
+        const minX = Math.min(...xs);
+        const minY = Math.min(...ys);
+        const maxX = Math.max(...xs);
+        const maxY = Math.max(...ys);
+        return {
+          x: minX,
+          y: minY,
+          width: maxX - minX,
+          height: maxY - minY,
+        };
+      default:
+        return { x: 0, y: 0, width: 0, height: 0 };
+    }
+  };
+
+  // Render bounding box for selected annotation
+  const renderBoundingBox = (annotation: Annotation) => {
+    if (annotation.id !== selectedAnnotationId || currentTool !== 'select') return null;
+
+    const bounds = getAnnotationBounds(annotation);
+    const padding = 8;
+
+    return (
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          left: bounds.x - padding,
+          top: bounds.y - padding,
+          width: bounds.width + padding * 2,
+          height: bounds.height + padding * 2,
+          border: '2px solid #3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.05)',
+        }}
+      >
+        {/* Corner handles */}
+        {[
+          { top: -4, left: -4 },
+          { top: -4, right: -4 },
+          { bottom: -4, left: -4 },
+          { bottom: -4, right: -4 },
+        ].map((pos, i) => (
+          <div
+            key={i}
+            className="absolute w-3 h-3 bg-white border-2 border-primary rounded-sm"
+            style={pos}
+          />
+        ))}
+
+        {/* Edge handles */}
+        {[
+          { top: -4, left: '50%', transform: 'translateX(-50%)' },
+          { bottom: -4, left: '50%', transform: 'translateX(-50%)' },
+          { top: '50%', left: -4, transform: 'translateY(-50%)' },
+          { top: '50%', right: -4, transform: 'translateY(-50%)' },
+        ].map((pos, i) => (
+          <div
+            key={`edge-${i}`}
+            className="absolute w-3 h-3 bg-white border-2 border-primary rounded-sm"
+            style={pos}
+          />
+        ))}
+      </div>
+    );
+  };
+
   const renderAnnotation = (annotation: Annotation) => {
     const isSelected = annotation.id === selectedAnnotationId;
     const commonProps = {
       key: annotation.id,
+      onMouseDown: (e: React.MouseEvent) => handleAnnotationMouseDown(e, annotation),
       onClick: (e: React.MouseEvent) => {
         e.stopPropagation();
         onAnnotationSelect(annotation.id);
@@ -215,141 +381,150 @@ export function PDFCanvas({
       style: {
         cursor: currentTool === 'select' ? 'move' : 'default',
       },
-      className: `absolute ${isSelected ? 'ring-2 ring-primary' : ''}`,
+      className: `absolute ${isSelected && currentTool !== 'select' ? 'ring-2 ring-primary' : ''}`,
     };
 
-    switch (annotation.type) {
-      case 'text':
-        return (
-          <div
-            {...commonProps}
-            style={{
-              ...commonProps.style,
-              left: annotation.position.x,
-              top: annotation.position.y,
-              color: annotation.color,
-              fontSize: annotation.fontSize,
-              fontFamily: annotation.fontFamily,
-            }}
-            onDoubleClick={(e) => {
-              e.stopPropagation();
-              const newText = prompt('Edit text:', annotation.text);
-              if (newText !== null) {
-                onAnnotationUpdate(annotation.id, { text: newText });
-              }
-            }}
-          >
-            {annotation.text}
-          </div>
-        );
+    const element = (() => {
+      switch (annotation.type) {
+        case 'text':
+          return (
+            <div
+              {...commonProps}
+              style={{
+                ...commonProps.style,
+                left: annotation.position.x,
+                top: annotation.position.y,
+                color: annotation.color,
+                fontSize: annotation.fontSize,
+                fontFamily: annotation.fontFamily,
+              }}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                const newText = prompt('Edit text:', annotation.text);
+                if (newText !== null) {
+                  onAnnotationUpdate(annotation.id, { text: newText });
+                }
+              }}
+            >
+              {annotation.text}
+            </div>
+          );
 
-      case 'rectangle':
-      case 'highlight':
-        return (
-          <div
-            {...commonProps}
-            style={{
-              ...commonProps.style,
-              left: annotation.position.x,
-              top: annotation.position.y,
-              width: annotation.width,
-              height: annotation.height,
-              backgroundColor: annotation.color,
-              opacity: annotation.opacity,
-              border: annotation.type === 'rectangle' ? `${annotation.strokeWidth}px solid ${annotation.color}` : 'none',
-            }}
-          />
-        );
-
-      case 'circle':
-        return (
-          <div
-            {...commonProps}
-            style={{
-              ...commonProps.style,
-              left: annotation.position.x,
-              top: annotation.position.y,
-              width: annotation.width,
-              height: annotation.height,
-              border: `${annotation.strokeWidth}px solid ${annotation.color}`,
-              borderRadius: '50%',
-            }}
-          />
-        );
-
-      case 'line':
-      case 'arrow':
-        if (!annotation.endPoint) return null;
-        const length = Math.sqrt(
-          Math.pow(annotation.endPoint.x - annotation.position.x, 2) +
-          Math.pow(annotation.endPoint.y - annotation.position.y, 2)
-        );
-        const angle = Math.atan2(
-          annotation.endPoint.y - annotation.position.y,
-          annotation.endPoint.x - annotation.position.x
-        ) * (180 / Math.PI);
-
-        return (
-          <div
-            {...commonProps}
-            style={{
-              ...commonProps.style,
-              left: annotation.position.x,
-              top: annotation.position.y,
-              width: length,
-              height: annotation.strokeWidth,
-              backgroundColor: annotation.color,
-              transformOrigin: '0 50%',
-              transform: `rotate(${angle}deg)`,
-            }}
-          >
-            {annotation.type === 'arrow' && (
-              <div
-                style={{
-                  position: 'absolute',
-                  right: -10,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: 0,
-                  height: 0,
-                  borderLeft: `10px solid ${annotation.color}`,
-                  borderTop: '5px solid transparent',
-                  borderBottom: '5px solid transparent',
-                }}
-              />
-            )}
-          </div>
-        );
-
-      case 'pen':
-        if (!annotation.points || annotation.points.length < 2) return null;
-        return (
-          <svg
-            {...commonProps}
-            style={{
-              ...commonProps.style,
-              left: 0,
-              top: 0,
-              width: '100%',
-              height: '100%',
-              pointerEvents: 'none',
-            }}
-          >
-            <polyline
-              points={annotation.points.map(p => `${p.x},${p.y}`).join(' ')}
-              fill="none"
-              stroke={annotation.color}
-              strokeWidth={annotation.strokeWidth}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ pointerEvents: 'all' }}
+        case 'rectangle':
+        case 'highlight':
+          return (
+            <div
+              {...commonProps}
+              style={{
+                ...commonProps.style,
+                left: annotation.position.x,
+                top: annotation.position.y,
+                width: annotation.width,
+                height: annotation.height,
+                backgroundColor: annotation.color,
+                opacity: annotation.opacity,
+                border: annotation.type === 'rectangle' ? `${annotation.strokeWidth}px solid ${annotation.color}` : 'none',
+              }}
             />
-          </svg>
-        );
+          );
 
-      default:
-        return null;
-    }
+        case 'circle':
+          return (
+            <div
+              {...commonProps}
+              style={{
+                ...commonProps.style,
+                left: annotation.position.x,
+                top: annotation.position.y,
+                width: annotation.width,
+                height: annotation.height,
+                border: `${annotation.strokeWidth}px solid ${annotation.color}`,
+                borderRadius: '50%',
+              }}
+            />
+          );
+
+        case 'line':
+        case 'arrow':
+          if (!annotation.endPoint) return null;
+          const length = Math.sqrt(
+            Math.pow(annotation.endPoint.x - annotation.position.x, 2) +
+            Math.pow(annotation.endPoint.y - annotation.position.y, 2)
+          );
+          const angle = Math.atan2(
+            annotation.endPoint.y - annotation.position.y,
+            annotation.endPoint.x - annotation.position.x
+          ) * (180 / Math.PI);
+
+          return (
+            <div
+              {...commonProps}
+              style={{
+                ...commonProps.style,
+                left: annotation.position.x,
+                top: annotation.position.y,
+                width: length,
+                height: annotation.strokeWidth,
+                backgroundColor: annotation.color,
+                transformOrigin: '0 50%',
+                transform: `rotate(${angle}deg)`,
+              }}
+            >
+              {annotation.type === 'arrow' && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: -10,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 0,
+                    height: 0,
+                    borderLeft: `10px solid ${annotation.color}`,
+                    borderTop: '5px solid transparent',
+                    borderBottom: '5px solid transparent',
+                  }}
+                />
+              )}
+            </div>
+          );
+
+        case 'pen':
+          if (!annotation.points || annotation.points.length < 2) return null;
+          return (
+            <svg
+              {...commonProps}
+              style={{
+                ...commonProps.style,
+                left: 0,
+                top: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none',
+              }}
+            >
+              <polyline
+                points={annotation.points.map(p => `${p.x},${p.y}`).join(' ')}
+                fill="none"
+                stroke={annotation.color}
+                strokeWidth={annotation.strokeWidth}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ pointerEvents: 'all' }}
+              />
+            </svg>
+          );
+
+        default:
+          return null;
+      }
+    })();
+
+    return (
+      <>
+        {element}
+        {renderBoundingBox(annotation)}
+      </>
+    );
   };
 
   const renderCurrentDrawing = () => {
@@ -423,9 +598,8 @@ export function PDFCanvas({
                 ref={(el) => {
                   pageRefsMap.current[pageNum] = el;
                 }}
-                className={`relative mx-auto rounded-md bg-white overflow-hidden transition-all duration-300 ease-out ${
-                  pageNum === currentPage ? 'border-2 border-gray-400 shadow-lg' : 'border border-gray-200'
-                }`}
+                className={`relative mx-auto rounded-md bg-white overflow-hidden transition-all duration-300 ease-out ${pageNum === currentPage ? 'border-2 border-gray-400 shadow-lg' : 'border border-gray-200'
+                  }`}
                 style={{
                   width: 'fit-content',
                   cursor: currentTool === 'select' ? 'default' : 'crosshair',
@@ -439,8 +613,22 @@ export function PDFCanvas({
                   // Continue with drawing if not in select mode
                   handleMouseDown(e);
                 }}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
+                onMouseMove={(e) => {
+                  // Handle annotation dragging
+                  if (isDragging && currentTool === 'select') {
+                    handleAnnotationMouseMove(e);
+                  } else {
+                    handleMouseMove(e);
+                  }
+                }}
+                onMouseUp={(e) => {
+                  // Handle annotation drag end
+                  if (isDragging) {
+                    handleAnnotationMouseUp();
+                  } else {
+                    handleMouseUp(e);
+                  }
+                }}
                 onClick={() => {
                   console.log('Page clicked:', pageNum, 'Current page:', currentPage);
                   // Deselect annotations when clicking in select mode
