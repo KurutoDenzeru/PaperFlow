@@ -368,15 +368,17 @@ export function PDFToolbar({
                     </TooltipTrigger>
                     <TooltipContent className="hidden sm:block">Text Color</TooltipContent>
                   </Tooltip>
-                  <DropdownMenuContent className="w-48">
-                    <div className="grid grid-cols-6 gap-2 p-2">
+                  <DropdownMenuContent className="w-56">
+                    <div className="grid grid-cols-6 gap-3 p-3">
                       {colors.map((color) => (
                         <button
                           key={color}
-                          className="w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer"
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer ${
+                            color === (textColor || '#000000') ? 'ring-2 ring-offset-1 ring-blue-500' : ''
+                          }`}
                           style={{
                             backgroundColor: color,
-                            borderColor: color === (textColor || '#000000') ? '#000' : 'transparent'
+                            borderColor: color === (textColor || '#000000') ? '#000' : '#ccc'
                           }}
                           onClick={() => {
                             if (onTextColorChange) {
@@ -408,12 +410,14 @@ export function PDFToolbar({
                     </TooltipTrigger>
                     <TooltipContent className="hidden sm:block">Background Color</TooltipContent>
                   </Tooltip>
-                  <DropdownMenuContent className="w-48">
-                    <div className="grid grid-cols-6 gap-2 p-2">
+                  <DropdownMenuContent className="w-56">
+                    <div className="grid grid-cols-6 gap-3 p-3">
                       <button
-                        className="w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center"
+                        className={`w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${
+                          backgroundColor === 'transparent' ? 'ring-2 ring-offset-1 ring-blue-500' : ''
+                        }`}
                         style={{
-                          borderColor: backgroundColor === 'transparent' ? '#000' : 'transparent',
+                          borderColor: backgroundColor === 'transparent' ? '#000' : '#ccc',
                           backgroundImage: 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)'
                         }}
                         onClick={() => {
@@ -428,10 +432,12 @@ export function PDFToolbar({
                       {colors.map((color) => (
                         <button
                           key={color}
-                          className="w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer"
+                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer ${
+                            color === backgroundColor ? 'ring-2 ring-offset-1 ring-blue-500' : ''
+                          }`}
                           style={{
                             backgroundColor: color,
-                            borderColor: color === backgroundColor ? '#000' : 'transparent'
+                            borderColor: color === backgroundColor ? '#000' : '#ccc'
                           }}
                           onClick={() => {
                             if (onBackgroundColorChange) {

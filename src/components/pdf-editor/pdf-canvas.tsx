@@ -19,6 +19,7 @@ interface PDFCanvasProps {
   onAnnotationUpdate: (id: string, updates: Partial<Annotation>) => void;
   onAnnotationDelete: (id: string) => void;
   onAnnotationSelect: (id: string | null) => void;
+  onTextAnnotationSelect?: (annotation: Annotation) => void;
   selectedAnnotationId: string | null;
   onPageChange: (page: number) => void;
   onNumPagesChange: (numPages: number) => void;
@@ -47,6 +48,7 @@ export function PDFCanvas({
   onAnnotationUpdate,
   onAnnotationDelete,
   onAnnotationSelect,
+  onTextAnnotationSelect,
   selectedAnnotationId,
   onPageChange,
   onNumPagesChange,
@@ -270,6 +272,11 @@ export function PDFCanvas({
 
     e.stopPropagation();
     onAnnotationSelect(annotation.id);
+
+    // If text annotation selected, sync formatting state
+    if (annotation.type === 'text' && onTextAnnotationSelect) {
+      onTextAnnotationSelect(annotation);
+    }
 
     // Get position relative to the page container (parent)
     const pageContainer = (e.target as HTMLElement).closest('[data-page-num]');

@@ -85,6 +85,25 @@ export function PDFEditor() {
     }
   }, []); // Only run on mount
 
+  // Update selected text annotation when formatting changes
+  useEffect(() => {
+    if (selectedAnnotationId && currentTool === 'select') {
+      const selectedAnnotation = pdfState.annotations.find(a => a.id === selectedAnnotationId);
+      if (selectedAnnotation && selectedAnnotation.type === 'text') {
+        handleAnnotationUpdate(selectedAnnotationId, {
+          fontFamily,
+          fontSize,
+          bold: textBold,
+          italic: textItalic,
+          underline: textUnderline,
+          textColor,
+          backgroundColor,
+          textAlign,
+        });
+      }
+    }
+  }, [fontFamily, fontSize, textBold, textItalic, textUnderline, textColor, backgroundColor, textAlign, selectedAnnotationId]);
+
   // Save session to localStorage whenever state changes
   useEffect(() => {
     if (!pdfState.file || pdfState.numPages === 0) return;
@@ -148,6 +167,20 @@ export function PDFEditor() {
     // Auto-switch back to select mode after placing a shape/text (not for pen or eraser)
     if (currentTool !== 'select' && currentTool !== 'pen' && currentTool !== 'eraser') {
       setCurrentTool('select');
+    }
+  };
+
+  const handleTextAnnotationSelect = (annotation: Annotation) => {
+    // Sync text formatting state from selected annotation
+    if (annotation.type === 'text') {
+      if (annotation.fontFamily) setFontFamily(annotation.fontFamily);
+      if (annotation.fontSize) setFontSize(annotation.fontSize);
+      if (annotation.bold !== undefined) setTextBold(annotation.bold);
+      if (annotation.italic !== undefined) setTextItalic(annotation.italic);
+      if (annotation.underline !== undefined) setTextUnderline(annotation.underline);
+      if (annotation.textColor) setTextColor(annotation.textColor);
+      if (annotation.backgroundColor) setBackgroundColor(annotation.backgroundColor);
+      if (annotation.textAlign) setTextAlign(annotation.textAlign);
     }
   };
 
@@ -589,6 +622,7 @@ export function PDFEditor() {
             onAnnotationUpdate={handleAnnotationUpdate}
             onAnnotationDelete={handleAnnotationDelete}
             onAnnotationSelect={setSelectedAnnotationId}
+            onTextAnnotationSelect={handleTextAnnotationSelect}
             selectedAnnotationId={selectedAnnotationId}
             onPageChange={(page) => setPdfState(prev => ({ ...prev, currentPage: page }))}
             onNumPagesChange={(numPages) => setPdfState(prev => ({ ...prev, numPages }))}
