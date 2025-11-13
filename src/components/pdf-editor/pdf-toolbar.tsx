@@ -52,6 +52,8 @@ interface PDFToolbarProps {
   onColorChange: (color: string) => void;
   strokeWidth: number;
   onStrokeWidthChange: (width: number) => void;
+  strokeColor?: string;
+  onStrokeColorChange?: (color: string) => void;
   sidebarOpen?: boolean;
   onToggleSidebar?: () => void;
   selectedAnnotationId?: string | null;
@@ -111,6 +113,8 @@ export function PDFToolbar({
   onColorChange,
   strokeWidth,
   onStrokeWidthChange,
+  strokeColor = '#000000',
+  onStrokeColorChange,
   sidebarOpen = true,
   onToggleSidebar,
   selectedAnnotationId,
@@ -219,15 +223,34 @@ export function PDFToolbar({
                     <Palette className="w-4 h-4 shrink-0" />
                     <div
                       className="w-3 h-3 md:w-4 md:h-4 rounded border shrink-0"
-                      style={{ backgroundColor: currentColor }}
+                      style={{ 
+                        backgroundColor: currentColor === 'transparent' ? 'transparent' : currentColor,
+                        backgroundImage: currentColor === 'transparent' ? 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)' : 'none'
+                      }}
                     />
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Color</TooltipContent>
+              <TooltipContent className="hidden sm:block">Fill Color</TooltipContent>
             </Tooltip>
             <DropdownMenuContent className="w-74">
               <div className="grid grid-cols-6 gap-1 p-1.5">
+                <button
+                  className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${
+                    currentColor === 'transparent' ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                  }`}
+                  style={{
+                    borderColor: currentColor === 'transparent' ? '#000' : '#e5e7eb',
+                    backgroundImage: 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)'
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onColorChange('transparent');
+                  }}
+                  title="Transparent"
+                >
+                  ✕
+                </button>
                 {colors.map((color) => (
                   <button
                     key={color}
@@ -247,6 +270,49 @@ export function PDFToolbar({
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Stroke/Outline Color Picker */}
+          {onStrokeColorChange && (
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 h-8 md:h-9 px-2 shrink-0">
+                      <div className="w-4 h-4 rounded border-2 flex items-center justify-center"
+                        style={{ 
+                          borderColor: strokeColor === 'transparent' ? '#ccc' : strokeColor,
+                          backgroundColor: 'transparent'
+                        }}>
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent className="hidden sm:block">Stroke Color</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent className="w-74">
+                <div className="grid grid-cols-6 gap-1 p-1.5">
+                  {colors.map((color) => (
+                    <button
+                      key={color}
+                      className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${
+                        color === strokeColor ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                      }`}
+                      style={{
+                        backgroundColor: color,
+                        borderColor: color === strokeColor ? '#000' : '#e5e7eb'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onStrokeColorChange) {
+                          onStrokeColorChange(color);
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {/* Stroke Width */}
           <div className="hidden md:flex items-center gap-2 px-2 shrink-0">

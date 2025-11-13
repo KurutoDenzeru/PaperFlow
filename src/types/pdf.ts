@@ -25,6 +25,7 @@ export interface Annotation {
   fontSize?: number;
   fontFamily?: string;
   color: string;
+  strokeColor?: string;
   strokeWidth?: number;
   opacity?: number;
   points?: Point[];

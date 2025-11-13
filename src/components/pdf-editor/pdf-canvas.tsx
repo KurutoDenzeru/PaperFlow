@@ -26,6 +26,7 @@ interface PDFCanvasProps {
   onScaleChange: (scale: number) => void;
   currentColor: string;
   strokeWidth: number;
+  strokeColor?: string;
   fontFamily?: string;
   fontSize?: number;
   textBold?: boolean;
@@ -55,6 +56,7 @@ export function PDFCanvas({
   onScaleChange,
   currentColor,
   strokeWidth,
+  strokeColor = '#000000',
   fontFamily,
   fontSize,
   textBold,
@@ -225,6 +227,7 @@ export function PDFCanvas({
       pageNumber: currentPage,
       position: startPoint,
       color: currentColor,
+      strokeColor,
       strokeWidth,
       opacity: currentTool === 'highlight' ? 0.3 : 1,
     };
@@ -725,9 +728,9 @@ export function PDFCanvas({
                 top: annotation.position.y,
                 width: annotation.width,
                 height: annotation.height,
-                backgroundColor: annotation.color,
+                backgroundColor: annotation.color === 'transparent' ? 'transparent' : annotation.color,
                 opacity: annotation.opacity,
-                border: annotation.type === 'rectangle' ? `${annotation.strokeWidth}px solid ${annotation.color}` : 'none',
+                border: annotation.type === 'rectangle' ? `${annotation.strokeWidth}px solid ${annotation.strokeColor || annotation.color}` : 'none',
               }}
             />
           );
@@ -742,7 +745,8 @@ export function PDFCanvas({
                 top: annotation.position.y,
                 width: annotation.width,
                 height: annotation.height,
-                border: `${annotation.strokeWidth}px solid ${annotation.color}`,
+                backgroundColor: annotation.color === 'transparent' ? 'transparent' : annotation.color,
+                border: `${annotation.strokeWidth}px solid ${annotation.strokeColor || annotation.color}`,
                 borderRadius: '50%',
               }}
             />
@@ -769,7 +773,7 @@ export function PDFCanvas({
                 top: annotation.position.y,
                 width: length,
                 height: annotation.strokeWidth,
-                backgroundColor: annotation.color,
+                backgroundColor: annotation.strokeColor || annotation.color,
                 transformOrigin: '0 50%',
                 transform: `rotate(${angle}deg)`,
               }}
@@ -783,7 +787,7 @@ export function PDFCanvas({
                     transform: 'translateY(-50%)',
                     width: 0,
                     height: 0,
-                    borderLeft: `10px solid ${annotation.color}`,
+                    borderLeft: `10px solid ${annotation.strokeColor || annotation.color}`,
                     borderTop: '5px solid transparent',
                     borderBottom: '5px solid transparent',
                   }}

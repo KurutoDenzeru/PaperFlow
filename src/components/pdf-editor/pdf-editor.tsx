@@ -28,6 +28,7 @@ export function PDFEditor() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentColor, setCurrentColor] = useState('#FF0000');
   const [strokeWidth, setStrokeWidth] = useState(2);
+  const [strokeColor, setStrokeColor] = useState('#000000');
 
   // Text formatting state
   const [fontFamily, setFontFamily] = useState('Arial');
@@ -118,6 +119,7 @@ export function PDFEditor() {
           a.id === selectedAnnotationId ? {
             ...a,
             color: currentColor,
+            strokeColor,
             strokeWidth,
           } : a
         );
@@ -125,7 +127,7 @@ export function PDFEditor() {
         addToHistory(newAnnotations);
       }
     }
-  }, [currentColor, strokeWidth, selectedAnnotationId]);
+  }, [currentColor, strokeColor, strokeWidth, selectedAnnotationId]);
 
   // Save session to localStorage whenever state changes
   useEffect(() => {
@@ -595,6 +597,8 @@ export function PDFEditor() {
         onColorChange={setCurrentColor}
         strokeWidth={strokeWidth}
         onStrokeWidthChange={setStrokeWidth}
+        strokeColor={strokeColor}
+        onStrokeColorChange={setStrokeColor}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         selectedAnnotationId={selectedAnnotationId}
@@ -652,6 +656,7 @@ export function PDFEditor() {
             onScaleChange={(scale) => setPdfState(prev => ({ ...prev, scale }))}
             currentColor={currentColor}
             strokeWidth={strokeWidth}
+            strokeColor={strokeColor}
             fontFamily={fontFamily}
             fontSize={fontSize}
             textBold={textBold}
