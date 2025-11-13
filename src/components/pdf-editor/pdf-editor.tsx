@@ -90,19 +90,42 @@ export function PDFEditor() {
     if (selectedAnnotationId && currentTool === 'select') {
       const selectedAnnotation = pdfState.annotations.find(a => a.id === selectedAnnotationId);
       if (selectedAnnotation && selectedAnnotation.type === 'text') {
-        handleAnnotationUpdate(selectedAnnotationId, {
-          fontFamily,
-          fontSize,
-          bold: textBold,
-          italic: textItalic,
-          underline: textUnderline,
-          textColor,
-          backgroundColor,
-          textAlign,
-        });
+        const newAnnotations = pdfState.annotations.map(a =>
+          a.id === selectedAnnotationId ? {
+            ...a,
+            fontFamily,
+            fontSize,
+            bold: textBold,
+            italic: textItalic,
+            underline: textUnderline,
+            textColor,
+            backgroundColor,
+            textAlign,
+          } : a
+        );
+        setPdfState(prev => ({ ...prev, annotations: newAnnotations }));
+        addToHistory(newAnnotations);
       }
     }
   }, [fontFamily, fontSize, textBold, textItalic, textUnderline, textColor, backgroundColor, textAlign, selectedAnnotationId]);
+
+  // Update selected shape annotation when color changes
+  useEffect(() => {
+    if (selectedAnnotationId && currentTool === 'select') {
+      const selectedAnnotation = pdfState.annotations.find(a => a.id === selectedAnnotationId);
+      if (selectedAnnotation && (selectedAnnotation.type === 'rectangle' || selectedAnnotation.type === 'circle' || selectedAnnotation.type === 'line' || selectedAnnotation.type === 'arrow' || selectedAnnotation.type === 'highlight' || selectedAnnotation.type === 'pen' || selectedAnnotation.type === 'eraser')) {
+        const newAnnotations = pdfState.annotations.map(a =>
+          a.id === selectedAnnotationId ? {
+            ...a,
+            color: currentColor,
+            strokeWidth,
+          } : a
+        );
+        setPdfState(prev => ({ ...prev, annotations: newAnnotations }));
+        addToHistory(newAnnotations);
+      }
+    }
+  }, [currentColor, strokeWidth, selectedAnnotationId]);
 
   // Save session to localStorage whenever state changes
   useEffect(() => {
