@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   MousePointer2,
   Type,
@@ -137,6 +138,8 @@ export function PDFToolbar({
   textAlign,
   onTextAlignChange,
 }: PDFToolbarProps) {
+  const [openColorDropdown, setOpenColorDropdown] = useState<'fill' | 'stroke' | null>(null);
+  
   // Check if selected annotation is a text annotation
   const selectedAnnotation = selectedAnnotationId && annotations ? annotations.find(a => a.id === selectedAnnotationId) : null;
   const isTextAnnotationSelected = selectedAnnotation?.type === 'text';
@@ -215,7 +218,13 @@ export function PDFToolbar({
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden sm:block" />
 
           {/* Color Picker */}
-          <DropdownMenu>
+          <DropdownMenu open={openColorDropdown === 'fill'} onOpenChange={(open) => {
+            if (open) {
+              setOpenColorDropdown('fill');
+            } else {
+              setOpenColorDropdown(null);
+            }
+          }}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
@@ -246,6 +255,7 @@ export function PDFToolbar({
                   onClick={(e) => {
                     e.stopPropagation();
                     onColorChange('transparent');
+                    setOpenColorDropdown(null);
                   }}
                   title="Transparent"
                 >
@@ -264,6 +274,7 @@ export function PDFToolbar({
                     onClick={(e) => {
                       e.stopPropagation();
                       onColorChange(color);
+                      setOpenColorDropdown(null);
                     }}
                   />
                 ))}
@@ -273,7 +284,13 @@ export function PDFToolbar({
 
           {/* Stroke/Outline Color Picker */}
           {onStrokeColorChange && (
-            <DropdownMenu>
+            <DropdownMenu open={openColorDropdown === 'stroke'} onOpenChange={(open) => {
+              if (open) {
+                setOpenColorDropdown('stroke');
+              } else {
+                setOpenColorDropdown(null);
+              }
+            }}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>
@@ -291,6 +308,23 @@ export function PDFToolbar({
               </Tooltip>
               <DropdownMenuContent className="w-74">
                 <div className="grid grid-cols-6 gap-1 p-1.5">
+                  <button
+                    className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${
+                      strokeColor === 'transparent' ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                    }`}
+                    style={{
+                      borderColor: strokeColor === 'transparent' ? '#000' : '#e5e7eb',
+                      backgroundImage: 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)'
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onStrokeColorChange('transparent');
+                      setOpenColorDropdown(null);
+                    }}
+                    title="Transparent"
+                  >
+                    ✕
+                  </button>
                   {colors.map((color) => (
                     <button
                       key={color}
@@ -306,6 +340,7 @@ export function PDFToolbar({
                         if (onStrokeColorChange) {
                           onStrokeColorChange(color);
                         }
+                        setOpenColorDropdown(null);
                       }}
                     />
                   ))}
