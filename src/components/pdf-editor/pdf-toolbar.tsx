@@ -299,8 +299,9 @@ export function PDFToolbar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="gap-2 h-8 md:h-9 px-2 shrink-0">
-                      <div className="w-4 h-4 rounded border-2 flex items-center justify-center"
+                    <Button variant="outline" size="sm" className="gap-2 h-8 md:h-9 px-2 shrink-0 flex items-center justify-center">
+                      <SquareDashed className="w-4 h-4 shrink-0" />
+                      <div className="w-3 h-3 rounded border-2 flex items-center justify-center"
                         style={{ 
                           borderColor: strokeColor === 'transparent' ? '#ccc' : strokeColor,
                           backgroundColor: 'transparent'
