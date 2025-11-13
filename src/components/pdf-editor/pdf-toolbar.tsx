@@ -226,17 +226,22 @@ export function PDFToolbar({
               </TooltipTrigger>
               <TooltipContent className="hidden sm:block">Color</TooltipContent>
             </Tooltip>
-            <DropdownMenuContent className="w-48">
-              <div className="grid grid-cols-6 gap-2 p-2">
+            <DropdownMenuContent className="w-74">
+              <div className="grid grid-cols-6 gap-1 p-1.5">
                 {colors.map((color) => (
                   <button
                     key={color}
-                    className="w-8 h-8 rounded border-2 transition-all hover:scale-110"
+                    className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${
+                      color === currentColor ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                    }`}
                     style={{
                       backgroundColor: color,
-                      borderColor: color === currentColor ? '#000' : 'transparent'
+                      borderColor: color === currentColor ? '#000' : '#e5e7eb'
                     }}
-                    onClick={() => onColorChange(color)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onColorChange(color);
+                    }}
                   />
                 ))}
               </div>
@@ -368,19 +373,20 @@ export function PDFToolbar({
                     </TooltipTrigger>
                     <TooltipContent className="hidden sm:block">Text Color</TooltipContent>
                   </Tooltip>
-                  <DropdownMenuContent className="w-56">
-                    <div className="grid grid-cols-6 gap-3 p-3">
+                  <DropdownMenuContent className="w-64">
+                    <div className="grid grid-cols-6 gap-3 p-4">
                       {colors.map((color) => (
                         <button
                           key={color}
-                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer ${
-                            color === (textColor || '#000000') ? 'ring-2 ring-offset-1 ring-blue-500' : ''
+                          className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${
+                            color === (textColor || '#000000') ? 'ring-2 ring-offset-2 ring-blue-500' : ''
                           }`}
                           style={{
                             backgroundColor: color,
-                            borderColor: color === (textColor || '#000000') ? '#000' : '#ccc'
+                            borderColor: color === (textColor || '#000000') ? '#000' : '#e5e7eb'
                           }}
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             if (onTextColorChange) {
                               onTextColorChange(color);
                             }
@@ -410,17 +416,18 @@ export function PDFToolbar({
                     </TooltipTrigger>
                     <TooltipContent className="hidden sm:block">Background Color</TooltipContent>
                   </Tooltip>
-                  <DropdownMenuContent className="w-56">
-                    <div className="grid grid-cols-6 gap-3 p-3">
+                  <DropdownMenuContent className="w-84">
+                    <div className="grid grid-cols-6 gap-3 p-2">
                       <button
-                        className={`w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${
-                          backgroundColor === 'transparent' ? 'ring-2 ring-offset-1 ring-blue-500' : ''
+                        className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${
+                          backgroundColor === 'transparent' ? 'ring-2 ring-offset-2 ring-blue-500' : ''
                         }`}
                         style={{
-                          borderColor: backgroundColor === 'transparent' ? '#000' : '#ccc',
+                          borderColor: backgroundColor === 'transparent' ? '#000' : '#e5e7eb',
                           backgroundImage: 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)'
                         }}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (onBackgroundColorChange) {
                             onBackgroundColorChange('transparent');
                           }
@@ -432,14 +439,15 @@ export function PDFToolbar({
                       {colors.map((color) => (
                         <button
                           key={color}
-                          className={`w-8 h-8 rounded border-2 transition-all hover:scale-110 cursor-pointer ${
-                            color === backgroundColor ? 'ring-2 ring-offset-1 ring-blue-500' : ''
+                          className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${
+                            color === backgroundColor ? 'ring-2 ring-offset-2 ring-blue-500' : ''
                           }`}
                           style={{
                             backgroundColor: color,
-                            borderColor: color === backgroundColor ? '#000' : '#ccc'
+                            borderColor: color === backgroundColor ? '#000' : '#e5e7eb'
                           }}
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             if (onBackgroundColorChange) {
                               onBackgroundColorChange(color);
                             }
