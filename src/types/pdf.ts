@@ -36,6 +36,7 @@ export interface Annotation {
   underline?: boolean;
   textColor?: string;
   backgroundColor?: string;
+  textOutlineColor?: string;
   textAlign?: 'left' | 'center' | 'right';
 }
 

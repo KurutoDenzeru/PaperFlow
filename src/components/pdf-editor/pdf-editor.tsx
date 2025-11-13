@@ -38,6 +38,7 @@ export function PDFEditor() {
   const [textUnderline, setTextUnderline] = useState(false);
   const [textColor, setTextColor] = useState('#000000');
   const [backgroundColor, setBackgroundColor] = useState('transparent');
+  const [textOutlineColor, setTextOutlineColor] = useState('transparent');
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
 
   // Collapse sidebar on mobile by default
@@ -108,7 +109,7 @@ export function PDFEditor() {
         addToHistory(newAnnotations);
       }
     }
-  }, [fontFamily, fontSize, textBold, textItalic, textUnderline, textColor, backgroundColor, textAlign, selectedAnnotationId]);
+  }, [fontFamily, fontSize, textBold, textItalic, textUnderline, textColor, backgroundColor, textOutlineColor, textAlign, selectedAnnotationId]);
 
   // Update selected shape annotation when color changes
   useEffect(() => {
@@ -205,6 +206,7 @@ export function PDFEditor() {
       if (annotation.underline !== undefined) setTextUnderline(annotation.underline);
       if (annotation.textColor) setTextColor(annotation.textColor);
       if (annotation.backgroundColor) setBackgroundColor(annotation.backgroundColor);
+      if (annotation.textOutlineColor) setTextOutlineColor(annotation.textOutlineColor);
       if (annotation.textAlign) setTextAlign(annotation.textAlign);
     }
   };
@@ -618,6 +620,8 @@ export function PDFEditor() {
         onTextColorChange={setTextColor}
         backgroundColor={backgroundColor}
         onBackgroundColorChange={setBackgroundColor}
+        textOutlineColor={textOutlineColor}
+        onTextOutlineColorChange={setTextOutlineColor}
         textAlign={textAlign}
         onTextAlignChange={setTextAlign}
       />
