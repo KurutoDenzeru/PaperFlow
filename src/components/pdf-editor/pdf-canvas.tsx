@@ -32,7 +32,6 @@ interface PDFCanvasProps {
   textBold?: boolean;
   textItalic?: boolean;
   textUnderline?: boolean;
-  textColor?: string;
   backgroundColor?: string;
   textAlign?: 'left' | 'center' | 'right';
 }
@@ -62,7 +61,6 @@ export function PDFCanvas({
   textBold,
   textItalic,
   textUnderline,
-  textColor,
   backgroundColor,
   textAlign,
 }: PDFCanvasProps) {
@@ -237,7 +235,6 @@ export function PDFCanvas({
         annotation.text = 'Double click to edit';
         annotation.fontSize = fontSize || 16;
         annotation.fontFamily = fontFamily || 'Arial';
-        annotation.textColor = textColor || '#000000';
         annotation.bold = textBold || false;
         annotation.italic = textItalic || false;
         annotation.underline = textUnderline || false;
@@ -692,7 +689,7 @@ export function PDFCanvas({
                 ...commonProps.style,
                 left: annotation.position.x,
                 top: annotation.position.y,
-                color: annotation.textColor || annotation.color,
+                color: annotation.color,
                 fontSize: annotation.fontSize,
                 fontFamily: annotation.fontFamily,
                 fontWeight: annotation.bold ? 'bold' : 'normal',

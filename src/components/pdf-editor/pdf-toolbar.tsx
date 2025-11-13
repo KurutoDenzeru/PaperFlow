@@ -71,12 +71,8 @@ interface PDFToolbarProps {
   onTextItalicChange?: (italic: boolean) => void;
   textUnderline?: boolean;
   onTextUnderlineChange?: (underline: boolean) => void;
-  textColor?: string;
-  onTextColorChange?: (color: string) => void;
   backgroundColor?: string;
   onBackgroundColorChange?: (color: string) => void;
-  textOutlineColor?: string;
-  onTextOutlineColorChange?: (color: string) => void;
   textAlign?: 'left' | 'center' | 'right';
   onTextAlignChange?: (align: 'left' | 'center' | 'right') => void;
 }
@@ -134,12 +130,8 @@ export function PDFToolbar({
   onTextItalicChange,
   textUnderline,
   onTextUnderlineChange,
-  textColor,
-  onTextColorChange,
   backgroundColor,
   onBackgroundColorChange,
-  textOutlineColor = 'transparent',
-  onTextOutlineColorChange,
   textAlign,
   onTextAlignChange,
 }: PDFToolbarProps) {
@@ -467,44 +459,6 @@ export function PDFToolbar({
                 </Tooltip>
               </div>
 
-              {/* Text Color Picker with Icon */}
-              <div className="hidden md:flex shrink-0">
-                <DropdownMenu>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 px-0 shrink-0">
-                          <Palette className="w-4 h-4" style={{ color: textColor || '#000000' }} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent className="hidden sm:block">Text Color</TooltipContent>
-                  </Tooltip>
-                  <DropdownMenuContent className="w-64">
-                    <div className="grid grid-cols-6 gap-3 p-4">
-                      {colors.map((color) => (
-                        <button
-                          key={color}
-                          className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${
-                            color === (textColor || '#000000') ? 'ring-2 ring-offset-2 ring-blue-500' : ''
-                          }`}
-                          style={{
-                            backgroundColor: color,
-                            borderColor: color === (textColor || '#000000') ? '#000' : '#e5e7eb'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (onTextColorChange) {
-                              onTextColorChange(color);
-                            }
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
               {/* Background Color Picker with Icon */}
               <div className="hidden md:flex shrink-0">
                 <DropdownMenu>
@@ -557,68 +511,6 @@ export function PDFToolbar({
                             e.stopPropagation();
                             if (onBackgroundColorChange) {
                               onBackgroundColorChange(color);
-                            }
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Text Outline Color Picker with Icon */}
-              <div className="hidden md:flex shrink-0">
-                <DropdownMenu>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 px-0 shrink-0 relative flex items-center justify-center gap-1">
-                          <SquareDashed className="w-4 h-4 shrink-0" />
-                          <div className="w-3 h-3 rounded border-2 flex items-center justify-center"
-                            style={{ 
-                              borderColor: textOutlineColor === 'transparent' ? '#ccc' : textOutlineColor,
-                              backgroundColor: 'transparent'
-                            }}>
-                          </div>
-                        </Button>
-                      </DropdownMenuTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent className="hidden sm:block">Text Outline Color</TooltipContent>
-                  </Tooltip>
-                  <DropdownMenuContent className="w-64">
-                    <div className="grid grid-cols-6 gap-3 p-4">
-                      <button
-                        className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${
-                          textOutlineColor === 'transparent' ? 'ring-2 ring-offset-2 ring-blue-500' : ''
-                        }`}
-                        style={{
-                          borderColor: textOutlineColor === 'transparent' ? '#000' : '#e5e7eb',
-                          backgroundImage: 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)'
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onTextOutlineColorChange) {
-                            onTextOutlineColorChange('transparent');
-                          }
-                        }}
-                        title="No outline"
-                      >
-                        ✕
-                      </button>
-                      {colors.map((color) => (
-                        <button
-                          key={color}
-                          className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${
-                            color === textOutlineColor ? 'ring-2 ring-offset-2 ring-blue-500' : ''
-                          }`}
-                          style={{
-                            backgroundColor: color,
-                            borderColor: color === textOutlineColor ? '#000' : '#e5e7eb'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (onTextOutlineColorChange) {
-                              onTextOutlineColorChange(color);
                             }
                           }}
                         />

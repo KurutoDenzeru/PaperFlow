@@ -36,9 +36,7 @@ export function PDFEditor() {
   const [textBold, setTextBold] = useState(false);
   const [textItalic, setTextItalic] = useState(false);
   const [textUnderline, setTextUnderline] = useState(false);
-  const [textColor, setTextColor] = useState('#000000');
   const [backgroundColor, setBackgroundColor] = useState('transparent');
-  const [textOutlineColor, setTextOutlineColor] = useState('transparent');
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
 
   // Collapse sidebar on mobile by default
@@ -100,7 +98,7 @@ export function PDFEditor() {
             bold: textBold,
             italic: textItalic,
             underline: textUnderline,
-            textColor,
+            color: currentColor,
             backgroundColor,
             textAlign,
           } : a
@@ -109,7 +107,7 @@ export function PDFEditor() {
         addToHistory(newAnnotations);
       }
     }
-  }, [fontFamily, fontSize, textBold, textItalic, textUnderline, textColor, backgroundColor, textOutlineColor, textAlign, selectedAnnotationId]);
+  }, [fontFamily, fontSize, textBold, textItalic, textUnderline, currentColor, backgroundColor, textAlign, selectedAnnotationId]);
 
   // Update selected shape annotation when color changes
   useEffect(() => {
@@ -204,9 +202,8 @@ export function PDFEditor() {
       if (annotation.bold !== undefined) setTextBold(annotation.bold);
       if (annotation.italic !== undefined) setTextItalic(annotation.italic);
       if (annotation.underline !== undefined) setTextUnderline(annotation.underline);
-      if (annotation.textColor) setTextColor(annotation.textColor);
+      if (annotation.color) setCurrentColor(annotation.color);
       if (annotation.backgroundColor) setBackgroundColor(annotation.backgroundColor);
-      if (annotation.textOutlineColor) setTextOutlineColor(annotation.textOutlineColor);
       if (annotation.textAlign) setTextAlign(annotation.textAlign);
     }
   };
@@ -616,12 +613,8 @@ export function PDFEditor() {
         onTextItalicChange={setTextItalic}
         textUnderline={textUnderline}
         onTextUnderlineChange={setTextUnderline}
-        textColor={textColor}
-        onTextColorChange={setTextColor}
         backgroundColor={backgroundColor}
         onBackgroundColorChange={setBackgroundColor}
-        textOutlineColor={textOutlineColor}
-        onTextOutlineColorChange={setTextOutlineColor}
         textAlign={textAlign}
         onTextAlignChange={setTextAlign}
       />
@@ -666,7 +659,6 @@ export function PDFEditor() {
             textBold={textBold}
             textItalic={textItalic}
             textUnderline={textUnderline}
-            textColor={textColor}
             backgroundColor={backgroundColor}
             textAlign={textAlign}
           />
