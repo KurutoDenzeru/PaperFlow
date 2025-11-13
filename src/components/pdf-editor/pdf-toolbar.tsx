@@ -14,6 +14,7 @@ import {
   RotateCw,
   Trash2,
   Palette,
+  SquareDashed,
   MoreHorizontal,
   PanelRight,
   AlignLeft,
@@ -570,8 +571,9 @@ export function PDFToolbar({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 px-0 shrink-0 relative">
-                          <div className="w-4 h-4 rounded border-2 flex items-center justify-center"
+                        <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 px-0 shrink-0 relative flex items-center justify-center gap-1">
+                          <SquareDashed className="w-4 h-4 shrink-0" />
+                          <div className="w-3 h-3 rounded border-2 flex items-center justify-center"
                             style={{ 
                               borderColor: textOutlineColor === 'transparent' ? '#ccc' : textOutlineColor,
                               backgroundColor: 'transparent'
