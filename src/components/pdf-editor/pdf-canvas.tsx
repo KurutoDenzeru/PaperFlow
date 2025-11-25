@@ -551,6 +551,7 @@ export function PDFCanvas({
           width: annotation.width || 200,
           height: annotation.height || (annotation.fontSize || 16) * 1.5,
         };
+      case 'image':
       case 'rectangle':
       case 'circle':
       case 'highlight':
@@ -778,6 +779,32 @@ export function PDFCanvas({
               }}
             >
               {annotation.text || 'Type here'}
+            </div>
+          );
+
+        case 'image':
+          return (
+            <div
+              {...commonProps}
+              style={{
+                ...commonProps.style,
+                left: annotation.position.x,
+                top: annotation.position.y,
+                width: annotation.width,
+                height: annotation.height,
+                overflow: 'hidden',
+              }}
+            >
+              <img
+                src={annotation.imageData}
+                alt="Annotation"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  pointerEvents: 'none',
+                }}
+              />
             </div>
           );
 

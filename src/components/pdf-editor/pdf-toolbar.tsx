@@ -20,6 +20,7 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  Image,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -38,6 +39,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ImageUploadDialog } from './image-upload-dialog';
 import type { Tool, Annotation } from '@/types/pdf';
 
 interface PDFToolbarProps {
@@ -75,6 +77,7 @@ interface PDFToolbarProps {
   onBackgroundColorChange?: (color: string) => void;
   textAlign?: 'left' | 'center' | 'right';
   onTextAlignChange?: (align: 'left' | 'center' | 'right') => void;
+  onImageSelect?: (imageData: string) => void;
 }
 
 const colors = [
@@ -86,6 +89,7 @@ const colors = [
 const mainTools: { tool: Tool | 'shapes'; icon: React.ReactNode; label: string }[] = [
   { tool: 'select', icon: <MousePointer2 className="w-4 h-4" />, label: 'Select' },
   { tool: 'text', icon: <Type className="w-4 h-4" />, label: 'Text' },
+  { tool: 'image', icon: <Image className="w-4 h-4" />, label: 'Image' },
   { tool: 'shapes', icon: <Square className="w-4 h-4" />, label: 'Shapes' },
   { tool: 'highlight', icon: <Highlighter className="w-4 h-4" />, label: 'Highlight' },
   { tool: 'pen', icon: <Pen className="w-4 h-4" />, label: 'Pen' },
@@ -134,12 +138,21 @@ export function PDFToolbar({
   onBackgroundColorChange,
   textAlign,
   onTextAlignChange,
+  onImageSelect,
 }: PDFToolbarProps) {
   const [openColorDropdown, setOpenColorDropdown] = useState<'fill' | 'stroke' | null>(null);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
   
   // Check if selected annotation is a text annotation
   const selectedAnnotation = selectedAnnotationId && annotations ? annotations.find(a => a.id === selectedAnnotationId) : null;
   const isTextAnnotationSelected = selectedAnnotation?.type === 'text';
+
+  const handleImageSelect = (imageData: string) => {
+    if (onImageSelect) {
+      onImageSelect(imageData);
+      setImageDialogOpen(false);
+    }
+  };
 
   return (
     <TooltipProvider>
@@ -188,6 +201,27 @@ export function PDFToolbar({
                       </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                );
+              }
+
+              // Handle image tool - open dialog
+              if (tool === 'image') {
+                return (
+                  <Tooltip key={tool}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => setImageDialogOpen(true)}
+                        className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center ${
+                          currentTool === tool
+                            ? 'bg-primary text-primary-foreground shadow-md'
+                            : 'hover:bg-background/50'
+                        }`}
+                      >
+                        {icon}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="hidden sm:block">{label}</TooltipContent>
+                  </Tooltip>
                 );
               }
 
@@ -708,6 +742,13 @@ export function PDFToolbar({
           </div>
         </div>
       </div>
+
+      {/* Image Upload Dialog */}
+      <ImageUploadDialog
+        open={imageDialogOpen}
+        onOpenChange={setImageDialogOpen}
+        onImageSelect={handleImageSelect}
+      />
     </TooltipProvider>
   );
 }

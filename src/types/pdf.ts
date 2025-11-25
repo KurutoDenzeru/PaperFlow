@@ -1,6 +1,7 @@
 export type Tool = 
   | 'select'
   | 'text'
+  | 'image'
   | 'rectangle'
   | 'circle'
   | 'line'
@@ -37,6 +38,7 @@ export interface Annotation {
   underline?: boolean;
   backgroundColor?: string;
   textAlign?: 'left' | 'center' | 'right';
+  imageData?: string;
 }
 
 export interface PDFState {

@@ -284,6 +284,21 @@ export function PDFEditor() {
     }
   };
 
+  const handleImageSelect = (imageData: string) => {
+    // Create an image annotation at the center of the current page
+    const annotation: Omit<Annotation, 'id'> = {
+      type: 'image',
+      pageNumber: pdfState.currentPage,
+      position: { x: 100, y: 100 },
+      width: 200,
+      height: 200,
+      color: 'transparent',
+      imageData,
+    };
+    handleAnnotationAdd(annotation);
+    setCurrentTool('select');
+  };
+
   const handleAnnotationUpdate = (id: string, updates: Partial<Annotation>) => {
     const newAnnotations = pdfState.annotations.map(a =>
       a.id === id ? { ...a, ...updates } : a
@@ -624,6 +639,37 @@ export function PDFEditor() {
                   });
                 }
                 break;
+
+              case 'image':
+                if (annotation.imageData && annotation.width && annotation.height) {
+                  try {
+                    // Extract base64 data (remove data:image/xxx;base64, prefix)
+                    const base64Data = annotation.imageData.split(',')[1];
+                    const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+                    
+                    // Determine image type and embed accordingly
+                    let embeddedImage;
+                    if (annotation.imageData.startsWith('data:image/png')) {
+                      embeddedImage = await pdfDoc.embedPng(imageBytes);
+                    } else if (annotation.imageData.startsWith('data:image/jpeg') || annotation.imageData.startsWith('data:image/jpg')) {
+                      embeddedImage = await pdfDoc.embedJpg(imageBytes);
+                    } else {
+                      console.warn('Unsupported image format, skipping:', annotation.imageData.substring(0, 30));
+                      break;
+                    }
+
+                    page.drawImage(embeddedImage, {
+                      x: annotation.position.x,
+                      y: height - annotation.position.y - annotation.height,
+                      width: annotation.width,
+                      height: annotation.height,
+                      opacity: annotation.opacity || 1,
+                    });
+                  } catch (error) {
+                    console.error('Failed to embed image:', error);
+                  }
+                }
+                break;
             }
           }
         }
@@ -707,6 +753,7 @@ export function PDFEditor() {
         onBackgroundColorChange={setBackgroundColor}
         textAlign={textAlign}
         onTextAlignChange={setTextAlign}
+        onImageSelect={handleImageSelect}
       />
 
       <div className="flex-1 flex overflow-hidden relative w-full">
