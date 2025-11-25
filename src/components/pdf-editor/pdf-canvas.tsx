@@ -777,7 +777,7 @@ export function PDFCanvas({
                 }
               }}
             >
-              {annotation.text || 'Double click to edit'}
+              {annotation.text || 'Type here'}
             </div>
           );
 
