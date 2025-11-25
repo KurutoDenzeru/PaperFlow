@@ -20,6 +20,7 @@ interface PDFSidebarProps {
   annotations: Annotation[];
   onAnnotationUpdate: (id: string, updates: Partial<Annotation>) => void;
   onDeleteAnnotation: (id: string) => void;
+  onAnnotationReorder: (oldIndex: number, newIndex: number) => void;
   isOpen: boolean;
   onToggle: () => void;
 }
@@ -34,6 +35,7 @@ export function PDFSidebar({
   annotations,
   onAnnotationUpdate,
   onDeleteAnnotation,
+  onAnnotationReorder,
   isOpen,
   onToggle,
 }: PDFSidebarProps) {
@@ -43,6 +45,8 @@ export function PDFSidebar({
   const [dragOverPageNumber, setDragOverPageNumber] = useState<number | null>(null);
   const [editingLayerId, setEditingLayerId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [draggedAnnotationId, setDraggedAnnotationId] = useState<string | null>(null);
+  const [dragOverAnnotationId, setDragOverAnnotationId] = useState<string | null>(null);
 
   // Create URL from file when file changes
   useEffect(() => {
@@ -176,12 +180,42 @@ export function PDFSidebar({
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {annotations.map((annotation) => (
+                  {annotations.map((annotation, index) => (
                     <div
                       key={annotation.id}
-                      className="flex items-center justify-between p-2 rounded-lg hover:bg-accent group"
+                      draggable
+                      onDragStart={() => setDraggedAnnotationId(annotation.id)}
+                      onDragEnd={() => {
+                        setDraggedAnnotationId(null);
+                        setDragOverAnnotationId(null);
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragOverAnnotationId(annotation.id);
+                      }}
+                      onDragLeave={() => setDragOverAnnotationId(null)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (draggedAnnotationId && draggedAnnotationId !== annotation.id) {
+                          const oldIndex = annotations.findIndex(a => a.id === draggedAnnotationId);
+                          const newIndex = index;
+                          onAnnotationReorder(oldIndex, newIndex);
+                          setDraggedAnnotationId(null);
+                          setDragOverAnnotationId(null);
+                        }
+                      }}
+                      className={`flex items-center justify-between p-2 rounded-lg hover:bg-accent group transition-all cursor-move ${
+                        draggedAnnotationId === annotation.id ? 'opacity-50 border-2 border-primary' : ''
+                      } ${
+                        dragOverAnnotationId === annotation.id && draggedAnnotationId !== annotation.id
+                          ? 'border-2 border-primary/70 bg-primary/5 ring-2 ring-primary/30'
+                          : ''
+                      }`}
                     >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="cursor-move shrink-0">
+                          <GripVertical className="w-4 h-4 text-muted-foreground" />
+                        </div>
                         <div
                           className="w-4 h-4 rounded border shrink-0"
                           style={{ backgroundColor: annotation.color }}

@@ -447,6 +447,20 @@ export function PDFEditor() {
     }
   };
 
+  const handleAnnotationReorder = (oldIndex: number, newIndex: number) => {
+    if (oldIndex === newIndex || oldIndex < 0 || newIndex < 0 || oldIndex >= pdfState.annotations.length || newIndex >= pdfState.annotations.length) {
+      return;
+    }
+
+    const newAnnotations = [...pdfState.annotations];
+    const [movedAnnotation] = newAnnotations.splice(oldIndex, 1);
+    newAnnotations.splice(newIndex, 0, movedAnnotation);
+
+    setPdfState(prev => ({ ...prev, annotations: newAnnotations }));
+    addToHistory(newAnnotations);
+    toast.success('Layer reordered');
+  };
+
   const handlePageReorder = async (oldIndex: number, newIndex: number) => {
     if (!pdfState.file || oldIndex === newIndex || oldIndex < 0 || newIndex < 0 || oldIndex >= pdfState.numPages || newIndex >= pdfState.numPages) {
       return;
@@ -702,11 +716,12 @@ export function PDFEditor() {
           currentPage={pdfState.currentPage}
           onPageChange={(page) => setPdfState(prev => ({ ...prev, currentPage: page }))}
           onDeletePage={handleDeletePage}
-        onPageReorder={handlePageReorder}
-        annotations={pdfState.annotations}
-        onAnnotationUpdate={handleAnnotationUpdate}
-        onDeleteAnnotation={handleAnnotationDelete}
-        isOpen={sidebarOpen}
+          onPageReorder={handlePageReorder}
+          annotations={pdfState.annotations}
+          onAnnotationUpdate={handleAnnotationUpdate}
+          onDeleteAnnotation={handleAnnotationDelete}
+          onAnnotationReorder={handleAnnotationReorder}
+          isOpen={sidebarOpen}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
 
