@@ -179,17 +179,19 @@ export function PDFEditor() {
     setHistoryIndex(0);
   };
 
-  const handleAnnotationAdd = (annotation: Omit<Annotation, 'id'>) => {
+  const handleAnnotationAdd = (annotation: Annotation | Omit<Annotation, 'id'>) => {
+    const id = 'id' in annotation ? annotation.id : `annotation-${Date.now()}-${Math.random()}`;
     const newAnnotation: Annotation = {
       ...annotation,
-      id: `annotation-${Date.now()}-${Math.random()}`,
+      id,
     };
     const newAnnotations = [...pdfState.annotations, newAnnotation];
     setPdfState(prev => ({ ...prev, annotations: newAnnotations }));
     addToHistory(newAnnotations);
 
     // Auto-switch back to select mode after placing a shape/text (not for pen or eraser)
-    if (currentTool !== 'select' && currentTool !== 'pen' && currentTool !== 'eraser') {
+    // For text, we want to keep it selected/editing, so we might handle that in PDFCanvas
+    if (currentTool !== 'select' && currentTool !== 'pen' && currentTool !== 'eraser' && currentTool !== 'text') {
       setCurrentTool('select');
     }
   };

@@ -15,7 +15,7 @@ interface PDFCanvasProps {
   rotation: number;
   currentTool: Tool;
   annotations: Annotation[];
-  onAnnotationAdd: (annotation: Omit<Annotation, 'id'>) => void;
+  onAnnotationAdd: (annotation: Annotation | Omit<Annotation, 'id'>) => void;
   onAnnotationUpdate: (id: string, updates: Partial<Annotation>) => void;
   onAnnotationDelete: (id: string) => void;
   onAnnotationSelect: (id: string | null) => void;
@@ -71,6 +71,7 @@ export function PDFCanvas({
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
 
   // Drag state for moving annotations
   const [isDragging, setIsDragging] = useState(false);
@@ -232,15 +233,29 @@ export function PDFCanvas({
 
     switch (currentTool) {
       case 'text':
-        annotation.text = 'Double click to edit';
-        annotation.fontSize = fontSize || 16;
-        annotation.fontFamily = fontFamily || 'Arial';
-        annotation.bold = textBold || false;
-        annotation.italic = textItalic || false;
-        annotation.underline = textUnderline || false;
-        annotation.backgroundColor = backgroundColor || 'transparent';
-        annotation.textAlign = textAlign || 'left';
-        break;
+        const id = `text-${Date.now()}`;
+        const textAnnotation: Annotation = {
+          ...annotation,
+          id,
+          text: '',
+          fontSize: fontSize || 16,
+          fontFamily: fontFamily || 'Arial',
+          bold: textBold || false,
+          italic: textItalic || false,
+          underline: textUnderline || false,
+          backgroundColor: backgroundColor || 'transparent',
+          textAlign: textAlign || 'left',
+          width: 200,
+          height: (fontSize || 16) * 1.5,
+        };
+        onAnnotationAdd(textAnnotation);
+        setEditingAnnotationId(id);
+        onAnnotationSelect(id);
+        setIsDrawing(false);
+        setStartPoint(null);
+        setCurrentPoints([]);
+        return;
+
       case 'rectangle':
       case 'circle':
       case 'highlight':
@@ -429,7 +444,7 @@ export function PDFCanvas({
     if (newBounds.height < minSize) newBounds.height = minSize;
 
     // Update annotation based on type
-    if (annotation.type === 'rectangle' || annotation.type === 'circle' || annotation.type === 'highlight') {
+    if (annotation.type === 'rectangle' || annotation.type === 'circle' || annotation.type === 'highlight' || annotation.type === 'text') {
       onAnnotationUpdate(resizeAnnotationId, {
         position: { x: newBounds.x, y: newBounds.y },
         width: newBounds.width,
@@ -526,12 +541,11 @@ export function PDFCanvas({
   const getAnnotationBounds = (annotation: Annotation) => {
     switch (annotation.type) {
       case 'text':
-        // Approximate text bounds
         return {
           x: annotation.position.x,
           y: annotation.position.y,
-          width: (annotation.text?.length || 0) * (annotation.fontSize || 16) * 0.6,
-          height: annotation.fontSize || 16,
+          width: annotation.width || 200,
+          height: annotation.height || (annotation.fontSize || 16) * 1.5,
         };
       case 'rectangle':
       case 'circle':
@@ -682,6 +696,52 @@ export function PDFCanvas({
     const element = (() => {
       switch (annotation.type) {
         case 'text':
+          if (editingAnnotationId === annotation.id) {
+            return (
+              <div
+                key={annotation.id}
+                style={{
+                  position: 'absolute',
+                  left: annotation.position.x,
+                  top: annotation.position.y,
+                  zIndex: 100,
+                }}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <textarea
+                  autoFocus
+                  defaultValue={annotation.text}
+                  style={{
+                    width: annotation.width ? `${annotation.width}px` : '200px',
+                    height: annotation.height ? `${annotation.height}px` : 'auto',
+                    color: annotation.color,
+                    fontSize: annotation.fontSize,
+                    fontFamily: annotation.fontFamily,
+                    fontWeight: annotation.bold ? 'bold' : 'normal',
+                    fontStyle: annotation.italic ? 'italic' : 'normal',
+                    textDecoration: annotation.underline ? 'underline' : 'none',
+                    backgroundColor: annotation.backgroundColor && annotation.backgroundColor !== 'transparent' ? annotation.backgroundColor : 'transparent',
+                    textAlign: annotation.textAlign || 'left',
+                    border: '1px dashed #000',
+                    outline: 'none',
+                    resize: 'none',
+                    overflow: 'hidden',
+                    padding: '2px 4px',
+                    background: 'transparent',
+                  }}
+                  onBlur={(e) => {
+                    onAnnotationUpdate(annotation.id, { text: e.target.value });
+                    setEditingAnnotationId(null);
+                  }}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                />
+              </div>
+            );
+          }
+
           return (
             <div
               {...commonProps}
@@ -689,6 +749,8 @@ export function PDFCanvas({
                 ...commonProps.style,
                 left: annotation.position.x,
                 top: annotation.position.y,
+                width: annotation.width,
+                height: annotation.height,
                 color: annotation.color,
                 fontSize: annotation.fontSize,
                 fontFamily: annotation.fontFamily,
@@ -701,16 +763,15 @@ export function PDFCanvas({
                 textAlign: annotation.textAlign || 'left',
                 whiteSpace: 'pre-wrap',
                 wordWrap: 'break-word',
+                minWidth: '20px',
+                minHeight: '20px',
               }}
               onDoubleClick={(e) => {
                 e.stopPropagation();
-                const newText = prompt('Edit text:', annotation.text);
-                if (newText !== null) {
-                  onAnnotationUpdate(annotation.id, { text: newText });
-                }
+                setEditingAnnotationId(annotation.id);
               }}
             >
-              {annotation.text}
+              {annotation.text || 'Double click to edit'}
             </div>
           );
 
