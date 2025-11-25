@@ -29,6 +29,7 @@ export function PDFEditor() {
   const [currentColor, setCurrentColor] = useState('#000000');
   const [strokeWidth, setStrokeWidth] = useState(2);
   const [strokeColor, setStrokeColor] = useState('#000000');
+  const [clipboard, setClipboard] = useState<Annotation | null>(null);
 
   // Text formatting state
   const [fontFamily, setFontFamily] = useState('Arial');
@@ -163,6 +164,66 @@ export function PDFEditor() {
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
   }, [history, historyIndex]);
+
+  // Handle copy/paste
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check for Command/Control key
+      if (e.metaKey || e.ctrlKey) {
+        // Copy
+        if (e.key === 'c') {
+          if (selectedAnnotationId) {
+            const annotation = pdfState.annotations.find(a => a.id === selectedAnnotationId);
+            if (annotation) {
+              setClipboard(annotation);
+              toast.success('Copied to clipboard');
+            }
+          }
+        }
+        // Paste
+        else if (e.key === 'v') {
+          if (clipboard) {
+            const newId = `annotation-${Date.now()}-${Math.random()}`;
+            const offset = 20;
+            
+            const newAnnotation: Annotation = {
+              ...clipboard,
+              id: newId,
+              position: {
+                x: clipboard.position.x + offset,
+                y: clipboard.position.y + offset,
+              },
+            };
+
+            // Offset points for path-based annotations
+            if ((newAnnotation.type === 'pen' || newAnnotation.type === 'eraser' || newAnnotation.type === 'highlight') && newAnnotation.points) {
+              newAnnotation.points = newAnnotation.points.map(p => ({
+                x: p.x + offset,
+                y: p.y + offset
+              }));
+            }
+            
+            // Offset endPoint for line/arrow
+            if ((newAnnotation.type === 'line' || newAnnotation.type === 'arrow') && newAnnotation.endPoint) {
+              newAnnotation.endPoint = {
+                x: newAnnotation.endPoint.x + offset,
+                y: newAnnotation.endPoint.y + offset
+              };
+            }
+
+            const newAnnotations = [...pdfState.annotations, newAnnotation];
+            setPdfState(prev => ({ ...prev, annotations: newAnnotations }));
+            addToHistory(newAnnotations);
+            setSelectedAnnotationId(newId);
+            toast.success('Pasted from clipboard');
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedAnnotationId, pdfState.annotations, clipboard, addToHistory]);
 
   const handleFileSelect = (file: File) => {
     console.log('File selected:', file);
