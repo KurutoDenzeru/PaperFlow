@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { ChevronRight, GripVertical, Trash2, FileText } from 'lucide-react';
+import { ChevronRight, GripVertical, Trash2, FileText, Pencil, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Annotation } from '@/types/pdf';
@@ -17,6 +18,7 @@ interface PDFSidebarProps {
   onDeletePage: (page: number) => void;
   onPageReorder: (oldIndex: number, newIndex: number) => void;
   annotations: Annotation[];
+  onAnnotationUpdate: (id: string, updates: Partial<Annotation>) => void;
   onDeleteAnnotation: (id: string) => void;
   isOpen: boolean;
   onToggle: () => void;
@@ -30,6 +32,7 @@ export function PDFSidebar({
   onDeletePage,
   onPageReorder,
   annotations,
+  onAnnotationUpdate,
   onDeleteAnnotation,
   isOpen,
   onToggle,
@@ -38,6 +41,8 @@ export function PDFSidebar({
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [draggedPageNumber, setDraggedPageNumber] = useState<number | null>(null);
   const [dragOverPageNumber, setDragOverPageNumber] = useState<number | null>(null);
+  const [editingLayerId, setEditingLayerId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
 
   // Create URL from file when file changes
   useEffect(() => {
@@ -182,9 +187,73 @@ export function PDFSidebar({
                           style={{ backgroundColor: annotation.color }}
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {annotation.type.charAt(0).toUpperCase() + annotation.type.slice(1)}
-                          </p>
+                          {editingLayerId === annotation.id ? (
+                            <div className="flex items-center gap-1 mb-1">
+                              <Input
+                                value={editingName}
+                                onChange={(e) => setEditingName(e.target.value)}
+                                className="h-7 text-xs px-1"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    onAnnotationUpdate(annotation.id, { name: editingName });
+                                    setEditingLayerId(null);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingLayerId(null);
+                                  }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onAnnotationUpdate(annotation.id, { name: editingName });
+                                  setEditingLayerId(null);
+                                }}
+                              >
+                                <Check className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingLayerId(null);
+                                }}
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 group/name">
+                              <p 
+                                className="text-sm font-medium truncate cursor-pointer"
+                                onDoubleClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingLayerId(annotation.id);
+                                  setEditingName(annotation.name || annotation.type.charAt(0).toUpperCase() + annotation.type.slice(1));
+                                }}
+                              >
+                                {annotation.name || annotation.type.charAt(0).toUpperCase() + annotation.type.slice(1)}
+                              </p>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-4 w-4 p-0 opacity-0 group-hover/name:opacity-100 transition-opacity"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingLayerId(annotation.id);
+                                  setEditingName(annotation.name || annotation.type.charAt(0).toUpperCase() + annotation.type.slice(1));
+                                }}
+                              >
+                                <Pencil className="w-3 h-3 text-muted-foreground" />
+                              </Button>
+                            </div>
+                          )}
                           <p className="text-sm text-muted-foreground">
                             Page {annotation.pageNumber}
                           </p>

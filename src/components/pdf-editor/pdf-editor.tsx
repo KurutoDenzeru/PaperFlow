@@ -627,10 +627,11 @@ export function PDFEditor() {
           currentPage={pdfState.currentPage}
           onPageChange={(page) => setPdfState(prev => ({ ...prev, currentPage: page }))}
           onDeletePage={handleDeletePage}
-          onPageReorder={handlePageReorder}
-          annotations={pdfState.annotations}
-          onDeleteAnnotation={handleAnnotationDelete}
-          isOpen={sidebarOpen}
+        onPageReorder={handlePageReorder}
+        annotations={pdfState.annotations}
+        onAnnotationUpdate={handleAnnotationUpdate}
+        onDeleteAnnotation={handleAnnotationDelete}
+        isOpen={sidebarOpen}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
 

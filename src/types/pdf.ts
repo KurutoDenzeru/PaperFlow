@@ -17,6 +17,7 @@ export interface Point {
 export interface Annotation {
   id: string;
   type: Tool;
+  name?: string;
   pageNumber: number;
   position: Point;
   width?: number;
