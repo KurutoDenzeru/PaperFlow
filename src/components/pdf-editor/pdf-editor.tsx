@@ -190,8 +190,7 @@ export function PDFEditor() {
     addToHistory(newAnnotations);
 
     // Auto-switch back to select mode after placing a shape/text (not for pen or eraser)
-    // For text, we want to keep it selected/editing, so we might handle that in PDFCanvas
-    if (currentTool !== 'select' && currentTool !== 'pen' && currentTool !== 'eraser' && currentTool !== 'text') {
+    if (currentTool !== 'select' && currentTool !== 'pen' && currentTool !== 'eraser') {
       setCurrentTool('select');
     }
   };

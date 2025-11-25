@@ -72,6 +72,7 @@ export function PDFCanvas({
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
+  const hasDraggedRef = useRef(false);
 
   // Drag state for moving annotations
   const [isDragging, setIsDragging] = useState(false);
@@ -287,6 +288,7 @@ export function PDFCanvas({
 
     e.stopPropagation();
     onAnnotationSelect(annotation.id);
+    hasDraggedRef.current = false;
 
     // If text annotation selected, sync formatting state
     if (annotation.type === 'text' && onTextAnnotationSelect) {
@@ -311,6 +313,8 @@ export function PDFCanvas({
 
   const handleAnnotationMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !dragAnnotationId) return;
+
+    hasDraggedRef.current = true;
 
     const annotation = annotations.find(a => a.id === dragAnnotationId);
     if (!annotation) return;
@@ -685,12 +689,12 @@ export function PDFCanvas({
         onAnnotationSelect(annotation.id);
       },
       style: {
-        cursor: currentTool === 'select' ? 'move' : 'default',
+        cursor: currentTool === 'select' ? 'pointer' : 'default',
         transform: annotation.rotation ? `rotate(${annotation.rotation}deg)` : undefined,
         transformOrigin: 'center',
         transition: 'transform 0.05s ease-out',
       },
-      className: `absolute ${isSelected && currentTool !== 'select' ? 'ring-2 ring-primary' : ''}`,
+      className: `absolute ${isSelected && currentTool !== 'select' ? 'ring-2 ring-primary' : ''} ${currentTool === 'select' ? 'cursor-pointer' : ''}`,
     };
 
     const element = (() => {
@@ -766,9 +770,11 @@ export function PDFCanvas({
                 minWidth: '20px',
                 minHeight: '20px',
               }}
-              onDoubleClick={(e) => {
-                e.stopPropagation();
-                setEditingAnnotationId(annotation.id);
+              onClick={(e) => {
+                commonProps.onClick(e);
+                if (!hasDraggedRef.current) {
+                  setEditingAnnotationId(annotation.id);
+                }
               }}
             >
               {annotation.text || 'Double click to edit'}
