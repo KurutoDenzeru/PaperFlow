@@ -592,7 +592,7 @@ export function PDFCanvas({
 
   // Render bounding box for selected annotation
   const renderBoundingBox = (annotation: Annotation) => {
-    if (annotation.id !== selectedAnnotationId || currentTool !== 'select') return null;
+    if (annotation.id !== selectedAnnotationId || currentTool !== 'select' || annotation.id === editingAnnotationId) return null;
 
     const bounds = getAnnotationBounds(annotation);
     const padding = 8;
@@ -619,7 +619,7 @@ export function PDFCanvas({
           top: bounds.y - padding,
           width: bounds.width + padding * 2,
           height: bounds.height + padding * 2,
-          border: '2px solid #3b82f6',
+          border: '2px dashed #3b82f6',
           backgroundColor: 'rgba(59, 130, 246, 0.05)',
           transform: `rotate(${annotation.rotation || 0}deg)`,
           transformOrigin: 'center',
