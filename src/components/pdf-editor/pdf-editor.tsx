@@ -26,7 +26,7 @@ export function PDFEditor() {
   const [history, setHistory] = useState<Annotation[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [currentColor, setCurrentColor] = useState('#FF0000');
+  const [currentColor, setCurrentColor] = useState('#000000');
   const [strokeWidth, setStrokeWidth] = useState(2);
   const [strokeColor, setStrokeColor] = useState('#000000');
 
@@ -280,7 +280,7 @@ export function PDFEditor() {
     setSelectedAnnotationId(null);
     setHistory([[]]);
     setHistoryIndex(0);
-    setCurrentColor('#FF0000');
+    setCurrentColor('#000000');
     setStrokeWidth(2);
 
     toast.success('New session created');
