@@ -165,6 +165,16 @@ export function PDFEditor() {
     setHistoryIndex(newHistory.length - 1);
   }, [history, historyIndex]);
 
+  const getNextName = (type: string, annotations: Annotation[]) => {
+    const prefix = type.charAt(0).toUpperCase() + type.slice(1);
+    const existingNames = new Set(annotations.map(a => a.name));
+    let i = 1;
+    while (existingNames.has(`${prefix} ${i}`)) {
+      i++;
+    }
+    return `${prefix} ${i}`;
+  };
+
   // Handle copy/paste
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -185,10 +195,12 @@ export function PDFEditor() {
           if (clipboard) {
             const newId = `annotation-${Date.now()}-${Math.random()}`;
             const offset = 20;
+            const newName = getNextName(clipboard.type, pdfState.annotations);
             
             const newAnnotation: Annotation = {
               ...clipboard,
               id: newId,
+              name: newName,
               position: {
                 x: clipboard.position.x + offset,
                 y: clipboard.position.y + offset,
@@ -242,9 +254,11 @@ export function PDFEditor() {
 
   const handleAnnotationAdd = (annotation: Annotation | Omit<Annotation, 'id'>) => {
     const id = 'id' in annotation ? annotation.id : `annotation-${Date.now()}-${Math.random()}`;
+    const name = annotation.name || getNextName(annotation.type, pdfState.annotations);
     const newAnnotation: Annotation = {
       ...annotation,
       id,
+      name,
     };
     const newAnnotations = [...pdfState.annotations, newAnnotation];
     setPdfState(prev => ({ ...prev, annotations: newAnnotations }));
