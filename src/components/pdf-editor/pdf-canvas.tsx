@@ -448,7 +448,7 @@ export function PDFCanvas({
     if (newBounds.height < minSize) newBounds.height = minSize;
 
     // Update annotation based on type
-    if (annotation.type === 'rectangle' || annotation.type === 'circle' || annotation.type === 'highlight' || annotation.type === 'text') {
+    if (annotation.type === 'rectangle' || annotation.type === 'circle' || annotation.type === 'highlight' || annotation.type === 'text' || annotation.type === 'image') {
       onAnnotationUpdate(resizeAnnotationId, {
         position: { x: newBounds.x, y: newBounds.y },
         width: newBounds.width,

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, ImagePlus, FileImage } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -83,7 +83,10 @@ export function ImageUploadDialog({ open, onOpenChange, onImageSelect }: ImageUp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Insert Image</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <FileImage className="w-5 h-5" />
+            Insert Image
+          </DialogTitle>
           <DialogDescription>
             Upload an image to add to your PDF document
           </DialogDescription>
@@ -145,9 +148,11 @@ export function ImageUploadDialog({ open, onOpenChange, onImageSelect }: ImageUp
               </div>
               <div className="flex gap-2">
                 <Button onClick={handleInsert} className="flex-1">
+                  <ImagePlus className="w-4 h-4 mr-2" />
                   Insert Image
                 </Button>
                 <Button onClick={handleCancel} variant="outline" className="flex-1">
+                  <X className="w-4 h-4 mr-2" />
                   Cancel
                 </Button>
               </div>
