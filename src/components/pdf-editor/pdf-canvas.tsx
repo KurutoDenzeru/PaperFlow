@@ -286,6 +286,11 @@ export function PDFCanvas({
   const handleAnnotationMouseDown = (e: React.MouseEvent, annotation: Annotation) => {
     if (currentTool !== 'select') return;
 
+    // Don't allow dragging lines/arrows directly - only resize via endpoints
+    if (annotation.type === 'line' || annotation.type === 'arrow') {
+      return;
+    }
+
     e.stopPropagation();
     onAnnotationSelect(annotation.id);
     hasDraggedRef.current = false;
@@ -298,20 +303,18 @@ export function PDFCanvas({
     // Get position relative to the page container (parent)
     const pageContainer = (e.target as HTMLElement).closest('[data-page-num]');
     if (!pageContainer) return;
-
+    
     const rect = pageContainer.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-
+    
     setIsDragging(true);
     setDragAnnotationId(annotation.id);
     setDragOffset({
       x: mouseX - annotation.position.x,
       y: mouseY - annotation.position.y,
     });
-  };
-
-  const handleAnnotationMouseMove = (e: React.MouseEvent) => {
+  };  const handleAnnotationMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !dragAnnotationId) return;
 
     hasDraggedRef.current = true;
@@ -379,13 +382,34 @@ export function PDFCanvas({
     const annotation = annotations.find(a => a.id === annotationId);
     if (!annotation) return;
 
-    const bounds = getAnnotationBounds(annotation);
-
     setIsResizing(true);
     setResizeAnnotationId(annotationId);
     setResizeHandle(handle);
     setResizeStartPos({ x: mouseX, y: mouseY });
-    setResizeStartBounds({ ...bounds });
+
+    // For line/arrow, capture endpoint positions as bounds
+    if ((annotation.type === 'line' || annotation.type === 'arrow') && annotation.endPoint) {
+      if (handle === 'start') {
+        setResizeStartBounds({
+          x: annotation.position.x,
+          y: annotation.position.y,
+          width: 0,
+          height: 0,
+        });
+      } else if (handle === 'end') {
+        const width = annotation.endPoint.x - annotation.position.x;
+        const height = annotation.endPoint.y - annotation.position.y;
+        setResizeStartBounds({
+          x: annotation.position.x,
+          y: annotation.position.y,
+          width,
+          height,
+        });
+      }
+    } else {
+      const bounds = getAnnotationBounds(annotation);
+      setResizeStartBounds({ ...bounds });
+    }
   };
 
   const handleResizeMouseMove = (e: React.MouseEvent) => {
@@ -408,17 +432,22 @@ export function PDFCanvas({
     // Handle line/arrow endpoint dragging
     if ((annotation.type === 'line' || annotation.type === 'arrow') && annotation.endPoint) {
       if (resizeHandle === 'start') {
-        // Moving start point
+        // Moving start point - update position
         onAnnotationUpdate(resizeAnnotationId, {
-          position: { x: resizeStartBounds.x + deltaX, y: resizeStartBounds.y + deltaY },
+          position: { 
+            x: resizeStartBounds.x + deltaX, 
+            y: resizeStartBounds.y + deltaY 
+          },
         });
         return;
       } else if (resizeHandle === 'end') {
-        // Moving end point
+        // Moving end point - calculate new endpoint relative to start point
+        const startX = annotation.position.x;
+        const startY = annotation.position.y;
         onAnnotationUpdate(resizeAnnotationId, {
           endPoint: {
-            x: annotation.endPoint.x + deltaX,
-            y: annotation.endPoint.y + deltaY,
+            x: startX + (resizeStartBounds.width + deltaX),
+            y: startY + (resizeStartBounds.height + deltaY),
           },
         });
         return;
