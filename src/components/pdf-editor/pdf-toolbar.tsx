@@ -138,7 +138,7 @@ export function PDFToolbar({
                       <TooltipTrigger asChild>
                         <DropdownMenuTrigger asChild>
                           <button
-                            className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center ${
+                            className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center cursor-pointer ${
                               shapeTools.some(t => t.tool === currentTool)
                                 ? 'bg-primary text-primary-foreground shadow-md'
                                 : 'hover:bg-background/50'
@@ -156,7 +156,7 @@ export function PDFToolbar({
                           <button
                             key={shapeTool}
                             onClick={() => onToolChange(shapeTool)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                               currentTool === shapeTool
                                 ? 'bg-primary text-primary-foreground shadow-md'
                                 : 'bg-muted hover:bg-muted/80'
@@ -179,7 +179,7 @@ export function PDFToolbar({
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => setImageDialogOpen(true)}
-                        className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center ${
+                        className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center cursor-pointer ${
                           currentTool === tool
                             ? 'bg-primary text-primary-foreground shadow-md'
                             : 'hover:bg-background/50'
@@ -199,7 +199,7 @@ export function PDFToolbar({
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => onToolChange(tool as Tool)}
-                      className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center ${
+                      className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center cursor-pointer ${
                         currentTool === tool
                           ? 'bg-primary text-primary-foreground shadow-md'
                           : 'hover:bg-background/50'
