@@ -94,6 +94,11 @@ export function PDFCanvas({
   const [rotateStartAngle, setRotateStartAngle] = useState(0);
   const [rotateStartRotation, setRotateStartRotation] = useState(0);
 
+  // Canvas drag state for panning when zoomed in
+  const [isCanvasDragging, setIsCanvasDragging] = useState(false);
+  const [canvasDragStart, setCanvasDragStart] = useState<Point | null>(null);
+  const [canvasScrollStart, setCanvasScrollStart] = useState<{ x: number; y: number } | null>(null);
+
   // Create URL from file when file changes
   useEffect(() => {
     if (file) {
@@ -580,6 +585,36 @@ export function PDFCanvas({
     setRotateAnnotationId(null);
     setRotateStartAngle(0);
     setRotateStartRotation(0);
+  };
+
+  // Canvas drag handlers for panning when zoomed in
+  const handleCanvasDragStart = (e: React.MouseEvent) => {
+    // Only allow canvas dragging in select mode and when zoomed in
+    if (currentTool !== 'select' || scale <= 1) return;
+    
+    setIsCanvasDragging(true);
+    setCanvasDragStart({ x: e.clientX, y: e.clientY });
+    setCanvasScrollStart({
+      x: scrollContainerRef.current?.scrollLeft || 0,
+      y: scrollContainerRef.current?.scrollTop || 0,
+    });
+  };
+
+  const handleCanvasDragMove = (e: React.MouseEvent) => {
+    if (!isCanvasDragging || !canvasDragStart || !canvasScrollStart || !scrollContainerRef.current) return;
+
+    const deltaX = e.clientX - canvasDragStart.x;
+    const deltaY = e.clientY - canvasDragStart.y;
+
+    // Invert delta so dragging right scrolls left (natural panning)
+    scrollContainerRef.current.scrollLeft = canvasScrollStart.x - deltaX;
+    scrollContainerRef.current.scrollTop = canvasScrollStart.y - deltaY;
+  };
+
+  const handleCanvasDragEnd = () => {
+    setIsCanvasDragging(false);
+    setCanvasDragStart(null);
+    setCanvasScrollStart(null);
   };
 
   // Get bounding box for an annotation
@@ -1108,8 +1143,13 @@ export function PDFCanvas({
         ref={scrollContainerRef}
         className="flex-1 w-full overflow-auto p-4 md:p-8 pb-24"
         style={{
-          scrollBehavior: 'auto', // Natural scroll for user, programmatic scroll is instant
+          scrollBehavior: 'auto',
+          cursor: isCanvasDragging ? 'grabbing' : (currentTool === 'select' && scale > 1 ? 'grab' : 'default'),
         }}
+        onMouseDown={handleCanvasDragStart}
+        onMouseMove={handleCanvasDragMove}
+        onMouseUp={handleCanvasDragEnd}
+        onMouseLeave={handleCanvasDragEnd}
       >
         <div className="flex flex-col items-center w-full">
           <div className="space-y-8">
