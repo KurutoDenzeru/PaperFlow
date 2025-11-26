@@ -1178,37 +1178,46 @@ export function PDFCanvas({
                   }
                 }}
               >
-                <Document
-                  file={fileUrl}
-                  onLoadSuccess={({ numPages }) => {
-                    console.log('PDF loaded successfully. Total pages:', numPages);
-                    if (pageNum === 1) {
-                      onNumPagesChange(numPages);
-                    }
-                  }}
-                  onLoadError={(error) => {
-                    console.error('Error loading PDF:', error);
+                {/* Scaled container for PDF and annotations */}
+                <div
+                  style={{
+                    transform: `scale(${scale})`,
+                    transformOrigin: 'top center',
+                    display: 'inline-block',
                   }}
                 >
-                  <Page
-                    pageNumber={pageNum}
-                    scale={scale}
-                    rotate={rotation}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    onLoadSuccess={() => {
-                      console.log('Page', pageNum, 'rendered successfully');
+                  <Document
+                    file={fileUrl}
+                    onLoadSuccess={({ numPages }) => {
+                      console.log('PDF loaded successfully. Total pages:', numPages);
+                      if (pageNum === 1) {
+                        onNumPagesChange(numPages);
+                      }
                     }}
                     onLoadError={(error) => {
-                      console.error('Error loading page', pageNum, ':', error);
+                      console.error('Error loading PDF:', error);
                     }}
-                  />
-                </Document>
+                  >
+                    <Page
+                      pageNumber={pageNum}
+                      scale={1}
+                      rotate={rotation}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                      onLoadSuccess={() => {
+                        console.log('Page', pageNum, 'rendered successfully');
+                      }}
+                      onLoadError={(error) => {
+                        console.error('Error loading page', pageNum, ':', error);
+                      }}
+                    />
+                  </Document>
 
-                {/* Render annotations for this page */}
-                {annotations
-                  .filter(a => a.pageNumber === pageNum)
-                  .map(renderAnnotation)}
+                  {/* Render annotations for this page */}
+                  {annotations
+                    .filter(a => a.pageNumber === pageNum)
+                    .map(renderAnnotation)}
+                </div>
 
                 {/* Render current drawing */}
                 {pageNum === currentPage && renderCurrentDrawing()}
