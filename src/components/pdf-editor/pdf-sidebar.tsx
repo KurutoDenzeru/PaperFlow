@@ -27,6 +27,7 @@ interface PDFSidebarProps {
   onToggle: () => void;
   onAnnotationHover?: (id: string | null) => void;
   onAnnotationSelect?: (id: string) => void;
+  selectedAnnotationId?: string | null;
 }
 
 export function PDFSidebar({
@@ -44,6 +45,7 @@ export function PDFSidebar({
   onToggle,
   onAnnotationHover,
   onAnnotationSelect,
+  selectedAnnotationId,
 }: PDFSidebarProps) {
   const [activeTab, setActiveTab] = useState('pages');
   const [fileUrl, setFileUrl] = useState<string | null>(null);
@@ -243,6 +245,8 @@ export function PDFSidebar({
                         }
                       }}
                       className={`flex items-center justify-between p-2 rounded-lg hover:bg-accent group transition-all cursor-move ${
+                        selectedAnnotationId === annotation.id ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950/30' : ''
+                      } ${
                         draggedAnnotationId === annotation.id ? 'opacity-50 border-2 border-primary' : ''
                       } ${
                         dragOverAnnotationId === annotation.id && draggedAnnotationId !== annotation.id

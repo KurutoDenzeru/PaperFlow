@@ -773,6 +773,7 @@ export function PDFEditor() {
           onToggle={() => setSidebarOpen(!sidebarOpen)}
           onAnnotationHover={setHoveredAnnotationId}
           onAnnotationSelect={setSelectedAnnotationId}
+          selectedAnnotationId={selectedAnnotationId}
         />
 
         <div className={`flex-1 flex w-full transition-all duration-200 ${sidebarOpen ? 'mr-56 sm:mr-64' : 'mr-0'}`}>
