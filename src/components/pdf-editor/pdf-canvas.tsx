@@ -1160,10 +1160,11 @@ export function PDFCanvas({
                 ref={(el) => {
                   pageRefsMap.current[pageNum] = el;
                 }}
-                className={`relative mx-auto rounded-md bg-white overflow-hidden transition-all duration-300 ease-out ${pageNum === currentPage ? 'border-2 border-gray-400 shadow-lg' : 'border border-gray-200'
+                className={`relative mx-auto rounded-md bg-white transition-all duration-300 ease-out ${pageNum === currentPage ? 'border-2 border-gray-400 shadow-lg' : 'border border-gray-200'
                   }`}
                 style={{
                   width: 'fit-content',
+                  maxWidth: scale > 1 ? '90vw' : 'none',
                   cursor: currentTool === 'select' ? 'default' : 'crosshair',
                 }}
                 onMouseDown={(e) => {
@@ -1218,26 +1219,34 @@ export function PDFCanvas({
                   }
                 }}
               >
-                {/* Scaled container for PDF and annotations */}
+                {/* Scrollable wrapper for zoomed content */}
                 <div
+                  className="overflow-auto"
                   style={{
-                    transform: `scale(${scale})`,
-                    transformOrigin: 'top center',
-                    display: 'inline-block',
+                    maxWidth: '100%',
+                    maxHeight: scale > 1 ? '80vh' : 'none',
                   }}
                 >
-                  <Document
-                    file={fileUrl}
-                    onLoadSuccess={({ numPages }) => {
-                      console.log('PDF loaded successfully. Total pages:', numPages);
-                      if (pageNum === 1) {
-                        onNumPagesChange(numPages);
-                      }
-                    }}
-                    onLoadError={(error) => {
-                      console.error('Error loading PDF:', error);
+                  {/* Scaled container for PDF and annotations */}
+                  <div
+                    style={{
+                      transform: `scale(${scale})`,
+                      transformOrigin: 'top left',
+                      display: 'inline-block',
                     }}
                   >
+                    <Document
+                      file={fileUrl}
+                      onLoadSuccess={({ numPages }) => {
+                        console.log('PDF loaded successfully. Total pages:', numPages);
+                        if (pageNum === 1) {
+                          onNumPagesChange(numPages);
+                        }
+                      }}
+                      onLoadError={(error) => {
+                        console.error('Error loading PDF:', error);
+                      }}
+                    >
                     <Page
                       pageNumber={pageNum}
                       scale={1}
@@ -1257,6 +1266,7 @@ export function PDFCanvas({
                   {annotations
                     .filter(a => a.pageNumber === pageNum)
                     .map(renderAnnotation)}
+                </div>
                 </div>
 
                 {/* Render current drawing */}
