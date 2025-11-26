@@ -23,6 +23,7 @@ export function PDFEditor() {
 
   const [currentTool, setCurrentTool] = useState<Tool>('select');
   const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
+  const [hoveredAnnotationId, setHoveredAnnotationId] = useState<string | null>(null);
   const [history, setHistory] = useState<Annotation[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -770,6 +771,7 @@ export function PDFEditor() {
           onAnnotationReorder={handleAnnotationReorder}
           isOpen={sidebarOpen}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
+          onAnnotationHover={setHoveredAnnotationId}
         />
 
         <div className={`flex-1 flex w-full transition-all duration-200 ${sidebarOpen ? 'mr-56 sm:mr-64' : 'mr-0'}`}>
@@ -787,6 +789,7 @@ export function PDFEditor() {
             onAnnotationSelect={setSelectedAnnotationId}
             onTextAnnotationSelect={handleTextAnnotationSelect}
             selectedAnnotationId={selectedAnnotationId}
+            hoveredAnnotationId={hoveredAnnotationId}
             onPageChange={(page) => setPdfState(prev => ({ ...prev, currentPage: page }))}
             onNumPagesChange={(numPages) => setPdfState(prev => ({ ...prev, numPages }))}
             onScaleChange={(scale) => setPdfState(prev => ({ ...prev, scale }))}

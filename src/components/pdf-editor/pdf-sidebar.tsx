@@ -25,6 +25,7 @@ interface PDFSidebarProps {
   onAnnotationReorder: (oldIndex: number, newIndex: number) => void;
   isOpen: boolean;
   onToggle: () => void;
+  onAnnotationHover?: (id: string | null) => void;
 }
 
 export function PDFSidebar({
@@ -40,6 +41,7 @@ export function PDFSidebar({
   onAnnotationReorder,
   isOpen,
   onToggle,
+  onAnnotationHover,
 }: PDFSidebarProps) {
   const [activeTab, setActiveTab] = useState('pages');
   const [fileUrl, setFileUrl] = useState<string | null>(null);
@@ -231,6 +233,8 @@ export function PDFSidebar({
                           setDragOverAnnotationId(null);
                         }
                       }}
+                      onMouseEnter={() => onAnnotationHover?.(annotation.id)}
+                      onMouseLeave={() => onAnnotationHover?.(null)}
                       className={`flex items-center justify-between p-2 rounded-lg hover:bg-accent group transition-all cursor-move ${
                         draggedAnnotationId === annotation.id ? 'opacity-50 border-2 border-primary' : ''
                       } ${

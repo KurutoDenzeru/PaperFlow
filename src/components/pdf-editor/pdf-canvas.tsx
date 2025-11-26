@@ -21,6 +21,7 @@ interface PDFCanvasProps {
   onAnnotationSelect: (id: string | null) => void;
   onTextAnnotationSelect?: (annotation: Annotation) => void;
   selectedAnnotationId: string | null;
+  hoveredAnnotationId?: string | null;
   onPageChange: (page: number) => void;
   onNumPagesChange: (numPages: number) => void;
   onScaleChange: (scale: number) => void;
@@ -50,6 +51,7 @@ export function PDFCanvas({
   onAnnotationSelect,
   onTextAnnotationSelect,
   selectedAnnotationId,
+  hoveredAnnotationId,
   onPageChange,
   onNumPagesChange,
   onScaleChange,
@@ -630,6 +632,57 @@ export function PDFCanvas({
     }
   };
 
+  // Render hover highlight for annotations
+  const renderHoverHighlight = (annotation: Annotation) => {
+    if (annotation.id !== hoveredAnnotationId || annotation.id === selectedAnnotationId) return null;
+
+    // Special handling for lines and arrows
+    if ((annotation.type === 'line' || annotation.type === 'arrow') && annotation.endPoint) {
+      return (
+        <>
+          {/* Start point indicator */}
+          <div
+            className="absolute w-4 h-4 bg-yellow-300 border-2 border-yellow-500 rounded-full pointer-events-none"
+            style={{
+              left: annotation.position.x - 8,
+              top: annotation.position.y - 8,
+              zIndex: 9,
+            }}
+          />
+          {/* End point indicator */}
+          <div
+            className="absolute w-4 h-4 bg-yellow-300 border-2 border-yellow-500 rounded-full pointer-events-none"
+            style={{
+              left: annotation.endPoint.x - 8,
+              top: annotation.endPoint.y - 8,
+              zIndex: 9,
+            }}
+          />
+        </>
+      );
+    }
+
+    const bounds = getAnnotationBounds(annotation);
+    const padding = 8;
+
+    return (
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          left: bounds.x - padding,
+          top: bounds.y - padding,
+          width: bounds.width + padding * 2,
+          height: bounds.height + padding * 2,
+          border: '2px solid #facc15',
+          backgroundColor: 'rgba(250, 204, 21, 0.1)',
+          transform: `rotate(${annotation.rotation || 0}deg)`,
+          transformOrigin: 'center',
+          zIndex: 9,
+        }}
+      />
+    );
+  };
+
   // Render bounding box for selected annotation
   const renderBoundingBox = (annotation: Annotation) => {
     if (annotation.id !== selectedAnnotationId || currentTool !== 'select' || annotation.id === editingAnnotationId) return null;
@@ -991,6 +1044,7 @@ export function PDFCanvas({
       <>
         {element}
         {renderBoundingBox(annotation)}
+        {renderHoverHighlight(annotation)}
       </>
     );
   };
