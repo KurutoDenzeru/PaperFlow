@@ -405,7 +405,27 @@ export function PDFCanvas({
     const minSize = 20;
     let newBounds = { ...resizeStartBounds };
 
-    // Handle different resize directions
+    // Handle line/arrow endpoint dragging
+    if ((annotation.type === 'line' || annotation.type === 'arrow') && annotation.endPoint) {
+      if (resizeHandle === 'start') {
+        // Moving start point
+        onAnnotationUpdate(resizeAnnotationId, {
+          position: { x: resizeStartBounds.x + deltaX, y: resizeStartBounds.y + deltaY },
+        });
+        return;
+      } else if (resizeHandle === 'end') {
+        // Moving end point
+        onAnnotationUpdate(resizeAnnotationId, {
+          endPoint: {
+            x: annotation.endPoint.x + deltaX,
+            y: annotation.endPoint.y + deltaY,
+          },
+        });
+        return;
+      }
+    }
+
+    // Handle different resize directions for regular shapes
     switch (resizeHandle) {
       case 'tl': // top-left
         newBounds.x += deltaX;
@@ -453,16 +473,6 @@ export function PDFCanvas({
         position: { x: newBounds.x, y: newBounds.y },
         width: newBounds.width,
         height: newBounds.height,
-      });
-    } else if ((annotation.type === 'line' || annotation.type === 'arrow') && annotation.endPoint) {
-      // For lines/arrows, adjust endpoint based on resize
-      const newEndPoint = {
-        x: annotation.position.x + newBounds.width,
-        y: annotation.position.y + newBounds.height,
-      };
-      onAnnotationUpdate(resizeAnnotationId, {
-        position: { x: newBounds.x, y: newBounds.y },
-        endPoint: newEndPoint,
       });
     }
   };
@@ -594,6 +604,36 @@ export function PDFCanvas({
   // Render bounding box for selected annotation
   const renderBoundingBox = (annotation: Annotation) => {
     if (annotation.id !== selectedAnnotationId || currentTool !== 'select' || annotation.id === editingAnnotationId) return null;
+
+    // Special handling for lines and arrows - show only endpoint handles
+    if ((annotation.type === 'line' || annotation.type === 'arrow') && annotation.endPoint) {
+      return (
+        <>
+          {/* Start point handle */}
+          <div
+            className="absolute w-4 h-4 bg-white border-2 border-primary rounded-full pointer-events-auto hover:bg-primary transition-colors"
+            style={{
+              left: annotation.position.x - 8,
+              top: annotation.position.y - 8,
+              cursor: 'grab',
+              zIndex: 10,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, annotation.id, 'start')}
+          />
+          {/* End point handle */}
+          <div
+            className="absolute w-4 h-4 bg-white border-2 border-primary rounded-full pointer-events-auto hover:bg-primary transition-colors"
+            style={{
+              left: annotation.endPoint.x - 8,
+              top: annotation.endPoint.y - 8,
+              cursor: 'grab',
+              zIndex: 10,
+            }}
+            onMouseDown={(e) => handleResizeMouseDown(e, annotation.id, 'end')}
+          />
+        </>
+      );
+    }
 
     const bounds = getAnnotationBounds(annotation);
     const padding = 8;
