@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Grid3x3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -8,6 +8,8 @@ interface PDFDockProps {
   scale: number;
   onPageChange: (page: number) => void;
   onScaleChange: (scale: number) => void;
+  viewMode?: 'single' | 'multiple';
+  onViewModeChange?: (mode: 'single' | 'multiple') => void;
 }
 
 export function PDFDock({
@@ -16,7 +18,12 @@ export function PDFDock({
   scale,
   onPageChange,
   onScaleChange,
+  viewMode = 'single',
+  onViewModeChange,
 }: PDFDockProps) {
+  const handleViewModeChange = (mode: 'single' | 'multiple') => {
+    onViewModeChange?.(mode);
+  };
   return (
     <TooltipProvider>
       <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 mx-auto bg-background/95 backdrop-blur border rounded-lg shadow-lg z-50 flex flex-col sm:flex-row items-center justify-center gap-2 p-2 md:p-3 max-w-[calc(100vw-2rem)] sm:max-w-none">
@@ -98,6 +105,42 @@ export function PDFDock({
               </Button>
             </TooltipTrigger>
             <TooltipContent>Zoom in (200% maximum)</TooltipContent>
+          </Tooltip>
+        </div>
+
+        {/* Separator - Hidden on mobile, shown on small devices as vertical line */}
+        <div className="hidden sm:block w-px h-6 bg-border" />
+
+        {/* View Mode Group */}
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={viewMode === 'single' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => handleViewModeChange('single')}
+                className="h-8 w-8 md:h-9 md:w-9 p-0"
+                title="Single page view"
+              >
+                <FileText className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Single page view</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={viewMode === 'multiple' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => handleViewModeChange('multiple')}
+                className="h-8 w-8 md:h-9 md:w-9 p-0"
+                title="Multiple pages grid view"
+              >
+                <Grid3x3 className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Multiple pages grid view</TooltipContent>
           </Tooltip>
         </div>
       </div>

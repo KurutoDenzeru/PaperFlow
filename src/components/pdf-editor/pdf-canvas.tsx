@@ -98,6 +98,9 @@ export function PDFCanvas({
   const [canvasDragStart, setCanvasDragStart] = useState<Point | null>(null);
   const [canvasScrollStart, setCanvasScrollStart] = useState<{ x: number; y: number } | null>(null);
 
+  // View mode state
+  const [viewMode, setViewMode] = useState<'single' | 'multiple'>('single');
+
   // Create URL from file when file changes
   useEffect(() => {
     if (file) {
@@ -1151,7 +1154,7 @@ export function PDFCanvas({
         onMouseLeave={handleCanvasDragEnd}
       >
         <div className="flex flex-col items-center w-full">
-          <div className="space-y-8">
+          <div className={viewMode === 'multiple' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full' : 'space-y-8'}>
             {Array.from({ length: pagesToRender }, (_, i) => i + 1).map((pageNum) => (
               <div
                 key={pageNum}
@@ -1159,11 +1162,12 @@ export function PDFCanvas({
                 ref={(el) => {
                   pageRefsMap.current[pageNum] = el;
                 }}
-                className={`relative mx-auto rounded-md bg-white transition-all duration-300 ease-out ${pageNum === currentPage ? 'border-2 border-gray-400 shadow-lg' : 'border border-gray-200'
-                  }`}
+                className={`relative rounded-md bg-white transition-all duration-300 ease-out ${pageNum === currentPage ? 'border-2 border-gray-400 shadow-lg' : 'border border-gray-200'} ${
+                  viewMode === 'single' ? 'mx-auto' : ''
+                }`}
                 style={{
-                  width: 'fit-content',
-                  maxWidth: scale > 1 ? '90vw' : 'none',
+                  width: viewMode === 'multiple' ? '100%' : 'fit-content',
+                  maxWidth: scale > 1 && viewMode === 'single' ? '90vw' : 'none',
                   cursor: currentTool === 'select' ? 'default' : 'crosshair',
                 }}
                 onMouseDown={(e) => {
@@ -1286,6 +1290,8 @@ export function PDFCanvas({
         scale={scale}
         onPageChange={onPageChange}
         onScaleChange={onScaleChange}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
     </div>
   );
