@@ -26,6 +26,7 @@ interface PDFSidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   onAnnotationHover?: (id: string | null) => void;
+  onAnnotationSelect?: (id: string) => void;
 }
 
 export function PDFSidebar({
@@ -42,6 +43,7 @@ export function PDFSidebar({
   isOpen,
   onToggle,
   onAnnotationHover,
+  onAnnotationSelect,
 }: PDFSidebarProps) {
   const [activeTab, setActiveTab] = useState('pages');
   const [fileUrl, setFileUrl] = useState<string | null>(null);
@@ -235,6 +237,11 @@ export function PDFSidebar({
                       }}
                       onMouseEnter={() => onAnnotationHover?.(annotation.id)}
                       onMouseLeave={() => onAnnotationHover?.(null)}
+                      onClick={() => {
+                        if (editingLayerId !== annotation.id && !draggedAnnotationId) {
+                          onAnnotationSelect?.(annotation.id);
+                        }
+                      }}
                       className={`flex items-center justify-between p-2 rounded-lg hover:bg-accent group transition-all cursor-move ${
                         draggedAnnotationId === annotation.id ? 'opacity-50 border-2 border-primary' : ''
                       } ${
