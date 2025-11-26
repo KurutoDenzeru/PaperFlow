@@ -196,7 +196,7 @@ export function PDFEditor() {
             const newId = `annotation-${Date.now()}-${Math.random()}`;
             const offset = 20;
             const newName = getNextName(clipboard.type, pdfState.annotations);
-            
+
             const newAnnotation: Annotation = {
               ...clipboard,
               id: newId,
@@ -214,7 +214,7 @@ export function PDFEditor() {
                 y: p.y + offset
               }));
             }
-            
+
             // Offset endPoint for line/arrow
             if ((newAnnotation.type === 'line' || newAnnotation.type === 'arrow') && newAnnotation.endPoint) {
               newAnnotation.endPoint = {
@@ -646,7 +646,7 @@ export function PDFEditor() {
                     // Extract base64 data (remove data:image/xxx;base64, prefix)
                     const base64Data = annotation.imageData.split(',')[1];
                     const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-                    
+
                     // Determine image type and embed accordingly
                     let embeddedImage;
                     if (annotation.imageData.startsWith('data:image/png')) {

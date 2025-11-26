@@ -298,11 +298,11 @@ export function PDFCanvas({
     // Get position relative to the page container (parent)
     const pageContainer = (e.target as HTMLElement).closest('[data-page-num]');
     if (!pageContainer) return;
-    
+
     const rect = pageContainer.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-    
+
     setIsDragging(true);
     setDragAnnotationId(annotation.id);
     setDragOffset({

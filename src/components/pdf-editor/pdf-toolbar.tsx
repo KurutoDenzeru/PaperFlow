@@ -1,46 +1,14 @@
 import { useState } from 'react';
-import {
-  MousePointer2,
-  Type,
-  Square,
-  Circle,
-  Minus,
-  MoveRight,
-  Highlighter,
-  Pen,
-  Eraser,
-  Undo,
-  Redo,
-  RotateCw,
-  Trash2,
-  Palette,
-  SquareDashed,
-  MoreHorizontal,
-  PanelRight,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Image,
-} from 'lucide-react';
+import type { Tool, Annotation } from '@/types/pdf';
+import { ImageUploadDialog } from './image-upload-dialog';
+import { MousePointer2, Type, Square, Circle, Minus, MoveRight, Highlighter, Pen, Eraser, Undo, Redo, RotateCw, Trash2, Palette, SquareDashed, MoreHorizontal, PanelRight, AlignLeft, AlignCenter, AlignRight, Image } from 'lucide-react';
+
+// Components
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ImageUploadDialog } from './image-upload-dialog';
-import type { Tool, Annotation } from '@/types/pdf';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 interface PDFToolbarProps {
   currentTool: Tool;
