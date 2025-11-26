@@ -1,8 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import type { Tool, Annotation, Point } from '@/types/pdf';
+import { PDFDock } from './pdf-dock';
 
 // Set worker for pdfjs
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -1281,64 +1280,13 @@ export function PDFCanvas({
       </div>
 
       {/* Floating Pagination Dock */}
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 mx-auto bg-background/95 backdrop-blur border rounded-lg shadow-lg z-50 flex flex-col sm:flex-row items-center justify-center gap-2 p-2 md:p-3 max-w-[calc(100vw-2rem)] sm:max-w-none">
-        {/* Page Navigation Group */}
-        <div className="flex items-center gap-1 md:gap-2 shrink-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            disabled={currentPage <= 1}
-            className="h-8 w-8 md:h-9 md:w-9 p-0"
-            title="Previous page"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <span className="text-xs sm:text-sm font-medium min-w-fit px-2 md:px-3 py-1 bg-muted rounded whitespace-nowrap">
-            {currentPage}/{numPages}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onPageChange(Math.min(numPages, currentPage + 1))}
-            disabled={currentPage >= numPages}
-            className="h-8 w-8 md:h-9 md:w-9 p-0"
-            title="Next page"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {/* Separator - Hidden on mobile, shown on small devices as vertical line */}
-        <div className="hidden sm:block w-px h-6 bg-border" />
-
-        {/* Zoom Controls Group */}
-        <div className="flex items-center gap-1 md:gap-2 shrink-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onScaleChange(Math.max(1, scale - 0.1))}
-            disabled={scale <= 1}
-            className="h-8 w-8 md:h-9 md:w-9 p-0"
-            title="Zoom out"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </Button>
-          <span className="text-xs sm:text-sm font-medium min-w-fit px-1.5 md:px-2 whitespace-nowrap">
-            {Math.round(scale * 100)}%
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onScaleChange(Math.min(2, scale + 0.1))}
-            disabled={scale >= 2}
-            className="h-8 w-8 md:h-9 md:w-9 p-0"
-            title="Zoom in"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
+      <PDFDock
+        currentPage={currentPage}
+        numPages={numPages}
+        scale={scale}
+        onPageChange={onPageChange}
+        onScaleChange={onScaleChange}
+      />
     </div>
   );
 }
