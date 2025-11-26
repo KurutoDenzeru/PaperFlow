@@ -1225,7 +1225,6 @@ export function PDFCanvas({
                   style={{
                     maxWidth: '100%',
                     maxHeight: scale > 1 ? '80vh' : 'none',
-                    minHeight: scale <= 1 ? '100%' : 'auto',
                     display: 'flex',
                     alignItems: scale <= 1 ? 'center' : 'flex-start',
                     justifyContent: 'center',
@@ -1318,7 +1317,8 @@ export function PDFCanvas({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onScaleChange(Math.max(0.5, scale - 0.25))}
+            onClick={() => onScaleChange(Math.max(1, scale - 0.1))}
+            disabled={scale <= 1}
             className="h-8 w-8 md:h-9 md:w-9 p-0"
             title="Zoom out"
           >
@@ -1330,7 +1330,8 @@ export function PDFCanvas({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onScaleChange(Math.min(3, scale + 0.25))}
+            onClick={() => onScaleChange(Math.min(2, scale + 0.1))}
+            disabled={scale >= 2}
             className="h-8 w-8 md:h-9 md:w-9 p-0"
             title="Zoom in"
           >
