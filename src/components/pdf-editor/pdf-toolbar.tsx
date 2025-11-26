@@ -159,7 +159,7 @@ export function PDFToolbar({
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                               currentTool === shapeTool
                                 ? 'bg-primary text-primary-foreground shadow-md'
-                                : 'bg-muted hover:bg-accent hover:shadow-sm'
+                                : 'bg-background hover:bg-accent hover:shadow-sm'
                             }`}
                           >
                             {shapeIcon}
