@@ -1225,6 +1225,10 @@ export function PDFCanvas({
                   style={{
                     maxWidth: '100%',
                     maxHeight: scale > 1 ? '80vh' : 'none',
+                    minHeight: scale <= 1 ? '100%' : 'auto',
+                    display: 'flex',
+                    alignItems: scale <= 1 ? 'center' : 'flex-start',
+                    justifyContent: 'center',
                   }}
                 >
                   {/* Scaled container for PDF and annotations */}
