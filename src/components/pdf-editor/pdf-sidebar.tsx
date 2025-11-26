@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Annotation } from '@/types/pdf';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { ChevronRight, GripVertical, Trash2, FileText, Pencil, Check, X } from 'lucide-react';
+import { ChevronRight, GripVertical, Trash2, FileText, Pencil, Check, X, Type, Square, Circle, Minus, MoveRight, Highlighter, Pen, Eraser, Image as ImageIcon } from 'lucide-react';
 
 // Components
 import { Input } from '@/components/ui/input';
@@ -62,6 +62,31 @@ export function PDFSidebar({
       };
     }
   }, [file]);
+
+  const getAnnotationIcon = (type: string) => {
+    switch (type) {
+      case 'text':
+        return <Type className="w-4 h-4" />;
+      case 'rectangle':
+        return <Square className="w-4 h-4" />;
+      case 'circle':
+        return <Circle className="w-4 h-4" />;
+      case 'line':
+        return <Minus className="w-4 h-4" />;
+      case 'arrow':
+        return <MoveRight className="w-4 h-4" />;
+      case 'highlight':
+        return <Highlighter className="w-4 h-4" />;
+      case 'pen':
+        return <Pen className="w-4 h-4" />;
+      case 'eraser':
+        return <Eraser className="w-4 h-4" />;
+      case 'image':
+        return <ImageIcon className="w-4 h-4" />;
+      default:
+        return null;
+    }
+  };
 
   if (!isOpen) {
     return null;
@@ -218,10 +243,9 @@ export function PDFSidebar({
                         <div className="cursor-move shrink-0">
                           <GripVertical className="w-4 h-4 text-muted-foreground" />
                         </div>
-                        <div
-                          className="w-4 h-4 rounded border shrink-0"
-                          style={{ backgroundColor: annotation.color }}
-                        />
+                        <div className="text-muted-foreground shrink-0">
+                          {getAnnotationIcon(annotation.type)}
+                        </div>
                         <div className="flex-1 min-w-0">
                           {editingLayerId === annotation.id ? (
                             <div className="flex items-center gap-1 mb-1">
