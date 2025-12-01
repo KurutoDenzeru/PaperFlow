@@ -274,21 +274,6 @@ export function PDFNavbar({
                   <span>Export PDF</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onUndo} disabled={!canUndo} className="justify-between">
-                  <div className="flex items-center">
-                    <Undo className="w-4 h-4 mr-2" />
-                    <span>Undo</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground ml-2">{typeof window !== 'undefined' && navigator.platform.includes('Mac') ? '⌘Z' : 'Ctrl+Z'}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onRedo} disabled={!canRedo} className="justify-between">
-                  <div className="flex items-center">
-                    <Redo className="w-4 h-4 mr-2" />
-                    <span>Redo</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground ml-2">{typeof window !== 'undefined' && navigator.platform.includes('Mac') ? '⌘⇧Z' : 'Ctrl+Shift+Z'}</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onAddPage}>
                   <Plus className="w-4 h-4 mr-2" />
                   <span>Add Page</span>
