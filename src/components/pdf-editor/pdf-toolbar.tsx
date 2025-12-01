@@ -582,38 +582,8 @@ export function PDFToolbar({
           {/* Spacer to push sidebar toggle to the far right */}
           <div className="flex-1" />
 
-          {/* Action Buttons - Undo, Redo, Rotate, Delete */}
+          {/* Action Buttons - Rotate, Delete */}
           <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onUndo}
-                  disabled={!canUndo}
-                  className="h-8 w-8 md:h-9 md:w-9 p-0"
-                >
-                  <Undo className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Undo</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onRedo}
-                  disabled={!canRedo}
-                  className="h-8 w-8 md:h-9 md:w-9 p-0"
-                >
-                  <Redo className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Redo</TooltipContent>
-            </Tooltip>
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
