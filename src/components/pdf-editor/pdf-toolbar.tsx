@@ -118,8 +118,9 @@ export function PDFToolbar({
   const isShapeAnnotationSelected = selectedAnnotation?.type === 'rectangle' || selectedAnnotation?.type === 'circle' || selectedAnnotation?.type === 'line' || selectedAnnotation?.type === 'arrow';
 
   // Determine which tool options to show based on selection
-  const shouldHideStrokeAndWidth = currentTool === 'highlight' || (selectedAnnotation && selectedAnnotation.type !== 'text' && selectedAnnotation.type !== 'rectangle' && selectedAnnotation.type !== 'circle' && selectedAnnotation.type !== 'line' && selectedAnnotation.type !== 'arrow');
-  const shouldShowColorPicker = currentTool !== 'highlight' && !shouldHideStrokeAndWidth;
+  const shouldHideStrokeAndWidth = (currentTool === 'highlight' && !isHighlightAnnotationSelected) || (selectedAnnotation && selectedAnnotation.type !== 'text' && selectedAnnotation.type !== 'rectangle' && selectedAnnotation.type !== 'circle' && selectedAnnotation.type !== 'line' && selectedAnnotation.type !== 'arrow' && selectedAnnotation.type !== 'highlight');
+  // Show color picker for: highlight tool (always), other tools (unless hiding stroke/width), or when any editable annotation is selected
+  const shouldShowColorPicker = (currentTool === 'highlight' || currentTool === 'text' || currentTool === 'rectangle' || currentTool === 'circle' || currentTool === 'line' || currentTool === 'arrow' || isHighlightAnnotationSelected || isTextAnnotationSelected || isShapeAnnotationSelected) && !shouldHideStrokeAndWidth;
   const shouldShowStrokeOptions = currentTool !== 'highlight' && (currentTool === 'rectangle' || currentTool === 'circle' || currentTool === 'line' || currentTool === 'arrow' || isShapeAnnotationSelected);
 
   const handleImageSelect = (imageData: string) => {
