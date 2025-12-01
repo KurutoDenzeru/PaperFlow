@@ -1154,7 +1154,7 @@ export function PDFCanvas({
         onMouseLeave={handleCanvasDragEnd}
       >
         <div className="flex flex-col items-center w-full">
-          <div className={viewMode === 'multiple' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full' : 'space-y-8'}>
+          <div className={viewMode === 'multiple' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 w-full' : 'space-y-8'}>
             {Array.from({ length: pagesToRender }, (_, i) => i + 1).map((pageNum) => (
               <div
                 key={pageNum}
