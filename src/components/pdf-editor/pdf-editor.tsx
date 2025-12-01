@@ -79,6 +79,18 @@ export function PDFEditor() {
           setHistory([session.annotations]);
           setHistoryIndex(0);
 
+          // Restore color preferences
+          if (session.currentColor) setCurrentColor(session.currentColor);
+          if (session.strokeColor) setStrokeColor(session.strokeColor);
+          if (session.strokeWidth) setStrokeWidth(session.strokeWidth);
+          if (session.fontFamily) setFontFamily(session.fontFamily);
+          if (session.fontSize) setFontSize(session.fontSize);
+          if (session.textBold !== undefined) setTextBold(session.textBold);
+          if (session.textItalic !== undefined) setTextItalic(session.textItalic);
+          if (session.textUnderline !== undefined) setTextUnderline(session.textUnderline);
+          if (session.backgroundColor) setBackgroundColor(session.backgroundColor);
+          if (session.textAlign) setTextAlign(session.textAlign);
+
           toast.success('Session restored!');
         }
       } catch (error) {
@@ -148,6 +160,17 @@ export function PDFEditor() {
           scale: pdfState.scale,
           rotation: pdfState.rotation,
           annotations: pdfState.annotations,
+          // Save color and formatting preferences
+          currentColor,
+          strokeColor,
+          strokeWidth,
+          fontFamily,
+          fontSize,
+          textBold,
+          textItalic,
+          textUnderline,
+          backgroundColor,
+          textAlign,
           timestamp: new Date().toISOString(),
         };
         localStorage.setItem('pdfEditorSession', JSON.stringify(session));
@@ -158,7 +181,7 @@ export function PDFEditor() {
       console.error('Error reading file for localStorage');
     };
     reader.readAsDataURL(file);
-  }, [pdfState]);
+  }, [pdfState, currentColor, strokeColor, strokeWidth, fontFamily, fontSize, textBold, textItalic, textUnderline, backgroundColor, textAlign]);
 
   const addToHistory = useCallback((annotations: Annotation[]) => {
     const newHistory = history.slice(0, historyIndex + 1);

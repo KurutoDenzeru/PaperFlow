@@ -216,7 +216,8 @@ export function PDFToolbar({
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden sm:block" />
 
-          {/* Color Picker */}
+          {/* Color Picker - Hide for highlight tool */}
+          {currentTool !== 'highlight' && (
           <DropdownMenu open={openColorDropdown === 'fill'} onOpenChange={(open) => {
             if (open) {
               setOpenColorDropdown('fill');
@@ -280,6 +281,7 @@ export function PDFToolbar({
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
+          )}
 
           {/* Stroke/Outline Color Picker */}
           {onStrokeColorChange && currentTool !== 'highlight' && (
