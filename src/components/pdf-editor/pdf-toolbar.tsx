@@ -579,66 +579,6 @@ export function PDFToolbar({
 
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
 
-          {/* History */}
-          <div className="flex items-center gap-0.5 md:gap-1 shrink-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onUndo}
-                  disabled={!canUndo}
-                  className="h-8 w-8 md:h-9 md:w-9 px-1"
-                >
-                  <Undo className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Undo</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onRedo}
-                  disabled={!canRedo}
-                  className="h-8 w-8 md:h-9 md:w-9 px-1"
-                >
-                  <Redo className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Redo</TooltipContent>
-            </Tooltip>
-          </div>
-
-          <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden md:block" />
-
-          {/* Page Actions - Hidden on small screens */}
-          <div className="hidden md:flex items-center gap-0.5 md:gap-1 shrink-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={onRotate} className="h-8 w-8 md:h-9 md:w-9 px-1">
-                  <RotateCw className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Rotate</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onDeleteSelected}
-                  disabled={!hasSelection}
-                  className="h-8 w-8 md:h-9 md:w-9 px-1"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Delete</TooltipContent>
-            </Tooltip>
-          </div>
-
           {/* Spacer to push sidebar toggle to the far right */}
           <div className="flex-1" />
 
