@@ -61,7 +61,6 @@ const mainTools: { tool: Tool | 'shapes'; icon: React.ReactNode; label: string }
   { tool: 'shapes', icon: <Square className="w-4 h-4" />, label: 'Shapes' },
   { tool: 'highlight', icon: <Highlighter className="w-4 h-4" />, label: 'Highlight' },
   { tool: 'pen', icon: <Pen className="w-4 h-4" />, label: 'Pen' },
-  { tool: 'eraser', icon: <Eraser className="w-4 h-4" />, label: 'Eraser' },
 ];
 
 const shapeTools: { tool: Tool; icon: React.ReactNode; label: string }[] = [
@@ -118,8 +117,8 @@ export function PDFToolbar({
   const isShapeAnnotationSelected = selectedAnnotation?.type === 'rectangle' || selectedAnnotation?.type === 'circle' || selectedAnnotation?.type === 'line' || selectedAnnotation?.type === 'arrow';
 
   // Determine which tool options to show based on selection
-  const shouldHideStrokeAndWidth = (currentTool === 'highlight' && !isHighlightAnnotationSelected) || (selectedAnnotation && selectedAnnotation.type !== 'text' && selectedAnnotation.type !== 'rectangle' && selectedAnnotation.type !== 'circle' && selectedAnnotation.type !== 'line' && selectedAnnotation.type !== 'arrow' && selectedAnnotation.type !== 'highlight');
-  // Show color picker for: highlight tool (always), other tools (unless hiding stroke/width), or when any editable annotation is selected
+  const shouldHideStrokeAndWidth = selectedAnnotation && selectedAnnotation.type !== 'text' && selectedAnnotation.type !== 'rectangle' && selectedAnnotation.type !== 'circle' && selectedAnnotation.type !== 'line' && selectedAnnotation.type !== 'arrow' && selectedAnnotation.type !== 'highlight';
+  // Show color picker for: highlight tool, text tool, shapes, or when any editable annotation is selected
   const shouldShowColorPicker = (currentTool === 'highlight' || currentTool === 'text' || currentTool === 'rectangle' || currentTool === 'circle' || currentTool === 'line' || currentTool === 'arrow' || isHighlightAnnotationSelected || isTextAnnotationSelected || isShapeAnnotationSelected) && !shouldHideStrokeAndWidth;
   const shouldShowStrokeOptions = currentTool !== 'highlight' && (currentTool === 'rectangle' || currentTool === 'circle' || currentTool === 'line' || currentTool === 'arrow' || isShapeAnnotationSelected);
 
