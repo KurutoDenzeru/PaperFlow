@@ -205,6 +205,18 @@ export function PDFEditor() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Check for Command/Control key
       if (e.metaKey || e.ctrlKey) {
+        // Undo (Ctrl+Z or Cmd+Z)
+        if (e.key === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          handleUndo();
+          return;
+        }
+        // Redo (Ctrl+Shift+Z or Cmd+Shift+Z)
+        else if ((e.key === 'z' && e.shiftKey) || (e.key === 'y' && !e.shiftKey)) {
+          e.preventDefault();
+          handleRedo();
+          return;
+        }
         // Copy
         if (e.key === 'c') {
           if (selectedAnnotationId) {
