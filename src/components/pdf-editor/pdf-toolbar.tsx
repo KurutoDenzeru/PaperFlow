@@ -114,6 +114,13 @@ export function PDFToolbar({
   // Check if selected annotation is a text annotation
   const selectedAnnotation = selectedAnnotationId && annotations ? annotations.find(a => a.id === selectedAnnotationId) : null;
   const isTextAnnotationSelected = selectedAnnotation?.type === 'text';
+  const isHighlightAnnotationSelected = selectedAnnotation?.type === 'highlight';
+  const isShapeAnnotationSelected = selectedAnnotation?.type === 'rectangle' || selectedAnnotation?.type === 'circle' || selectedAnnotation?.type === 'line' || selectedAnnotation?.type === 'arrow';
+
+  // Determine which tool options to show based on selection
+  const shouldHideStrokeAndWidth = currentTool === 'highlight' || (selectedAnnotation && selectedAnnotation.type !== 'text' && selectedAnnotation.type !== 'rectangle' && selectedAnnotation.type !== 'circle' && selectedAnnotation.type !== 'line' && selectedAnnotation.type !== 'arrow');
+  const shouldShowColorPicker = currentTool !== 'highlight' && !shouldHideStrokeAndWidth;
+  const shouldShowStrokeOptions = currentTool !== 'highlight' && (currentTool === 'rectangle' || currentTool === 'circle' || currentTool === 'line' || currentTool === 'arrow' || isShapeAnnotationSelected);
 
   const handleImageSelect = (imageData: string) => {
     if (onImageSelect) {
@@ -217,7 +224,7 @@ export function PDFToolbar({
           <Separator orientation="vertical" className="h-6 md:h-8 shrink-0 hidden sm:block" />
 
           {/* Color Picker - Hide for highlight tool */}
-          {currentTool !== 'highlight' && (
+          {shouldShowColorPicker && (
           <DropdownMenu open={openColorDropdown === 'fill'} onOpenChange={(open) => {
             if (open) {
               setOpenColorDropdown('fill');
@@ -284,7 +291,7 @@ export function PDFToolbar({
           )}
 
           {/* Stroke/Outline Color Picker */}
-          {onStrokeColorChange && currentTool !== 'highlight' && (
+          {onStrokeColorChange && shouldShowStrokeOptions && (
             <DropdownMenu open={openColorDropdown === 'stroke'} onOpenChange={(open) => {
               if (open) {
                 setOpenColorDropdown('stroke');
@@ -352,7 +359,7 @@ export function PDFToolbar({
           )}
 
           {/* Stroke Width */}
-          {currentTool !== 'highlight' && (
+          {shouldShowStrokeOptions && (
           <div className="hidden md:flex items-center gap-2 px-2 shrink-0">
             <span className="text-sm text-muted-foreground whitespace-nowrap">Width:</span>
             <Select value={strokeWidth.toString()} onValueChange={(value) => onStrokeWidthChange(parseInt(value))}>
