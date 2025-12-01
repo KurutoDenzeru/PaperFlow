@@ -282,7 +282,7 @@ export function PDFToolbar({
           </DropdownMenu>
 
           {/* Stroke/Outline Color Picker */}
-          {onStrokeColorChange && (
+          {onStrokeColorChange && currentTool !== 'highlight' && (
             <DropdownMenu open={openColorDropdown === 'stroke'} onOpenChange={(open) => {
               if (open) {
                 setOpenColorDropdown('stroke');
@@ -350,6 +350,7 @@ export function PDFToolbar({
           )}
 
           {/* Stroke Width */}
+          {currentTool !== 'highlight' && (
           <div className="hidden md:flex items-center gap-2 px-2 shrink-0">
             <span className="text-sm text-muted-foreground whitespace-nowrap">Width:</span>
             <Select value={strokeWidth.toString()} onValueChange={(value) => onStrokeWidthChange(parseInt(value))}>
@@ -365,6 +366,7 @@ export function PDFToolbar({
               </SelectContent>
             </Select>
           </div>
+          )}
 
           {/* Text Formatting Tools - Show when Text tool is selected OR text annotation is selected */}
           {(currentTool === 'text' || isTextAnnotationSelected) && onFontFamilyChange && (
