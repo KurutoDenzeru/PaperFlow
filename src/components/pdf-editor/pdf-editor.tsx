@@ -766,11 +766,7 @@ export function PDFEditor() {
         currentTool={currentTool}
         onToolChange={setCurrentTool}
         onRotate={handleRotate}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
         onDeleteSelected={handleDeleteSelected}
-        canUndo={historyIndex > 0}
-        canRedo={historyIndex < history.length - 1}
         hasSelection={selectedAnnotationId !== null}
         currentColor={currentColor}
         onColorChange={setCurrentColor}

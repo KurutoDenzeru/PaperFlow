@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Tool, Annotation } from '@/types/pdf';
 import { ImageUploadDialog } from './image-upload-dialog';
-import { MousePointer2, Type, Square, Circle, Minus, MoveRight, Highlighter, Pen, Eraser, Undo, Redo, RotateCw, Trash2, Palette, SquareDashed, MoreHorizontal, PanelRight, AlignLeft, AlignCenter, AlignRight, Image } from 'lucide-react';
+import { MousePointer2, Type, Square, Circle, Minus, MoveRight, Highlighter, Pen, RotateCw, Trash2, Palette, SquareDashed, MoreHorizontal, PanelRight, AlignLeft, AlignCenter, AlignRight, Image } from 'lucide-react';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -14,11 +14,7 @@ interface PDFToolbarProps {
   currentTool: Tool;
   onToolChange: (tool: Tool) => void;
   onRotate: () => void;
-  onUndo: () => void;
-  onRedo: () => void;
   onDeleteSelected: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
   hasSelection: boolean;
   currentColor: string;
   onColorChange: (color: string) => void;
@@ -74,11 +70,7 @@ export function PDFToolbar({
   currentTool,
   onToolChange,
   onRotate,
-  onUndo,
-  onRedo,
   onDeleteSelected,
-  canUndo,
-  canRedo,
   hasSelection,
   currentColor,
   onColorChange,
