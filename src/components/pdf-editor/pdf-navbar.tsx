@@ -1,4 +1,4 @@
-import { Download, Undo, Redo, Trash2, Plus, RotateCw, MoreVertical, FileIcon, RotateCcw } from 'lucide-react';
+import { Download, Undo, Redo, Trash2, Plus, RotateCw, MoreVertical, FileIcon, RotateCcw, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Grid3x3 } from 'lucide-react';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,13 @@ interface PDFNavbarProps {
   canUndo: boolean;
   canRedo: boolean;
   hasSelection: boolean;
+  currentPage?: number;
+  numPages?: number;
+  scale?: number;
+  onPageChange?: (page: number) => void;
+  onScaleChange?: (scale: number) => void;
+  viewMode?: 'single' | 'multiple';
+  onViewModeChange?: (mode: 'single' | 'multiple') => void;
 }
 
 export function PDFNavbar({
@@ -33,6 +40,13 @@ export function PDFNavbar({
   canUndo,
   canRedo,
   hasSelection,
+  currentPage = 1,
+  numPages = 0,
+  scale = 1.0,
+  onPageChange,
+  onScaleChange,
+  viewMode = 'single',
+  onViewModeChange,
 }: PDFNavbarProps) {
   // Remove .pdf extension from display name
   const cleanFileName = fileName.endsWith('.pdf') ? fileName.slice(0, -4) : fileName;
@@ -121,6 +135,95 @@ export function PDFNavbar({
                       <RotateCw className="w-4 h-4 mr-2" />
                       <span>Rotate Page</span>
                     </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* View Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-sm px-2 py-0 h-6 hover:bg-accent">
+                      View
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    {/* Page Navigation */}
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Page Navigation</p>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onPageChange?.(Math.max(1, currentPage - 1))}
+                          disabled={currentPage <= 1}
+                          className="h-8 w-8 p-0"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                        <span className="text-sm font-medium flex-1 text-center">{currentPage}/{numPages}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onPageChange?.(Math.min(numPages, currentPage + 1))}
+                          disabled={currentPage >= numPages}
+                          className="h-8 w-8 p-0"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+
+                    {/* Zoom Controls */}
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Zoom</p>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onScaleChange?.(Math.max(1, scale - 0.1))}
+                          disabled={scale <= 1}
+                          className="h-8 w-8 p-0"
+                        >
+                          <ZoomOut className="w-4 h-4" />
+                        </Button>
+                        <span className="text-sm font-medium flex-1 text-center">{Math.round(scale * 100)}%</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onScaleChange?.(Math.min(2, scale + 0.1))}
+                          disabled={scale >= 2}
+                          className="h-8 w-8 p-0"
+                        >
+                          <ZoomIn className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+
+                    {/* View Mode */}
+                    <div className="px-2 py-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">View Mode</p>
+                      <div className="flex gap-1">
+                        <Button
+                          variant={viewMode === 'single' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => onViewModeChange?.('single')}
+                          className="flex-1"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Single
+                        </Button>
+                        <Button
+                          variant={viewMode === 'multiple' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => onViewModeChange?.('multiple')}
+                          className="flex-1"
+                        >
+                          <Grid3x3 className="w-4 h-4 mr-2" />
+                          Multiple
+                        </Button>
+                      </div>
+                    </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

@@ -31,6 +31,7 @@ export function PDFEditor() {
   const [strokeWidth, setStrokeWidth] = useState(2);
   const [strokeColor, setStrokeColor] = useState('#000000');
   const [clipboard, setClipboard] = useState<Annotation | null>(null);
+  const [viewMode, setViewMode] = useState<'single' | 'multiple'>('single');
 
   // Text formatting state
   const [fontFamily, setFontFamily] = useState('Arial');
@@ -717,6 +718,13 @@ export function PDFEditor() {
         canUndo={historyIndex > 0}
         canRedo={historyIndex < history.length - 1}
         hasSelection={selectedAnnotationId !== null}
+        currentPage={pdfState.currentPage}
+        numPages={pdfState.numPages}
+        scale={pdfState.scale}
+        onPageChange={(page) => setPdfState(prev => ({ ...prev, currentPage: page }))}
+        onScaleChange={(scale) => setPdfState(prev => ({ ...prev, scale }))}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
 
       <PDFToolbar
