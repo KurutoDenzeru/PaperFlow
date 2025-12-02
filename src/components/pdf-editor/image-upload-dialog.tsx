@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Upload, X, ImagePlus, FileImage } from 'lucide-react';
+import { Upload, X, ImagePlus, FileImage, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -90,6 +90,15 @@ export function ImageUploadDialog({ open, onOpenChange, onImageSelect }: ImageUp
           <DialogDescription>
             Upload an image to add to your PDF document
           </DialogDescription>
+          {/* Clear / Trash actions below description - show when preview is present */}
+          {previewImage && (
+            <div className="mt-2 flex items-center gap-2 justify-end">
+              <Button variant="outline" size="sm" onClick={() => setPreviewImage(null)}>
+                Clear
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </DialogHeader>
 
         <div className="space-y-4">
@@ -131,21 +140,13 @@ export function ImageUploadDialog({ open, onOpenChange, onImageSelect }: ImageUp
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="relative rounded-lg overflow-hidden border bg-muted">
-                <img
-                  src={previewImage}
-                  alt="Preview"
-                  className="w-full h-auto max-h-64 object-contain"
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-2 right-2 h-8 w-8 p-0"
-                  onClick={() => setPreviewImage(null)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
+                <div className="relative rounded-lg overflow-hidden border bg-muted">
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="w-full h-auto max-h-64 object-contain"
+                  />
+                </div>
               <div className="flex gap-2">
                 <Button onClick={handleInsert} className="flex-1">
                   <ImagePlus className="w-4 h-4 mr-2" />
