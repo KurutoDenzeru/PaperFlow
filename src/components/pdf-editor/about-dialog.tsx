@@ -14,15 +14,11 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><Info className="w-5 h-5"/>About PaperFlow</DialogTitle>
           <DialogDescription>
-            Project details, tech stack and social links.
+            A lightweight PDF editor for annotating and signing PDF documents.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 text-sm">
-          <div>
-            <p className="font-semibold">PaperFlow</p>
-            <p className="text-muted-foreground">A lightweight PDF editor for annotating and signing PDF documents.</p>
-          </div>
 
           <div>
             <p className="font-semibold">Tech Stack</p>
