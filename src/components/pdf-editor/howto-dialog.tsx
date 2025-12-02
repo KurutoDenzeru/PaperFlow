@@ -1,4 +1,3 @@
-import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, HelpCircle } from 'lucide-react';
@@ -13,7 +12,7 @@ export function HowToDialog({ open, onOpenChange }: HowToDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><HelpCircle className="w-5 h-5" />How to use PaperFlow</DialogTitle>
+          <DialogTitle className="flex items-center gap-2"><HelpCircle className="w-5 h-5" />How to use Inkoro</DialogTitle>
           <DialogDescription>
             A quick guide on how to use the editor and annotation tools.
           </DialogDescription>

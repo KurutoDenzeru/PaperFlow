@@ -12,7 +12,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><Info className="w-5 h-5"/>About PaperFlow</DialogTitle>
+          <DialogTitle className="flex items-center gap-2"><Info className="w-5 h-5"/>About Inkoro</DialogTitle>
           <DialogDescription>
             Lightweight React + TypeScript PDF editor using react-pdf (pdf.js), Tailwind, and shadcn/ui; ideal for responsive interfaces and quick PDF workflows.
           </DialogDescription>
@@ -35,7 +35,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
             <p className="font-semibold">Project Links:</p>
             <div className="flex items-center gap-2 mt-2">
               <Button variant="outline" asChild>
-                <a href="https://github.com/KurutoDenzeru/PaperFlow" target="_blank" rel="noreferrer">
+                <a href="https://github.com/KurutoDenzeru/Inkoro" target="_blank" rel="noreferrer">
                   <Github className="w-4 h-4" />
                 </a>
               </Button>
