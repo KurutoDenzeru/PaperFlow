@@ -36,17 +36,17 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
             <div className="flex items-center gap-2 mt-2">
               <Button variant="outline" asChild>
                 <a href="https://github.com/KurutoDenzeru/PaperFlow" target="_blank" rel="noreferrer">
-                  <Github className="w-4 h-4 mr-2" /> GitHub
+                  <Github className="w-4 h-4" />
                 </a>
               </Button>
               <Button variant="outline" asChild>
                 <a href="https://www.linkedin.com/in/kurtcalacday/" target="_blank" rel="noreferrer">
-                  <Linkedin className="w-4 h-4 mr-2" /> LinkedIn
+                  <Linkedin className="w-4 h-4" />
                 </a>
               </Button>
               <Button variant="outline" asChild>
                 <a href="https://www.instagram.com/krtclcdy/" target="_blank" rel="noreferrer">
-                  <Instagram className="w-4 h-4 mr-2" /> Instagram
+                  <Instagram className="w-4 h-4" />
                 </a>
               </Button>
             </div>
