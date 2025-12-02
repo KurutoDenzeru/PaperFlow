@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { FileSignature, Check, X, Upload, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -143,9 +144,13 @@ export function SignatureDialog({ open, onOpenChange, onSignatureInsert }: Signa
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex gap-2">
-            <Button onClick={() => setMode('upload')} variant={mode === 'upload' ? 'default' : 'ghost'} size="sm">Upload</Button>
-            <Button onClick={() => setMode('draw')} variant={mode === 'draw' ? 'default' : 'ghost'} size="sm">Draw</Button>
+          <div className="flex gap-2 items-center">
+            <Tabs value={mode} onValueChange={(v) => setMode(v as 'upload' | 'draw')}>
+              <TabsList className="bg-muted rounded-md p-1">
+                <TabsTrigger value="upload" className="h-8 px-3">Upload</TabsTrigger>
+                <TabsTrigger value="draw" className="h-8 px-3">Draw</TabsTrigger>
+              </TabsList>
+            </Tabs>
             <div className="flex-1" />
             <Button variant="outline" size="sm" onClick={() => { setPreviewImage(null); clearCanvas(); }}>
               <Trash2 className="w-4 h-4 mr-2" />
