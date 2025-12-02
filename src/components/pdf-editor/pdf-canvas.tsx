@@ -521,26 +521,23 @@ export function PDFCanvas({
         height: newBounds.height,
       });
     } else if (annotation.type === 'pen') {
-      // Scale pen points relative to the start bounds so the pen drawing scales with the bounding box
-      // Avoid extreme scaling when the start bounds are very small by using a
-      // minimum base size. Clamp scale factors to keep resize interaction
-      // predictable and less sensitive.
-      const baseOldWidth = Math.max(resizeStartBounds.width, minSize);
-      const baseOldHeight = Math.max(resizeStartBounds.height, minSize);
+      // For pen annotations, scale points relative to their position within the bounding box
+      // This preserves the shape while resizing
+      const oldWidth = Math.max(resizeStartBounds.width, minSize);
+      const oldHeight = Math.max(resizeStartBounds.height, minSize);
 
-      let scaleX = newBounds.width / baseOldWidth;
-      let scaleY = newBounds.height / baseOldHeight;
+      // Transform each point: normalize to bounding box space, then apply new bounds
+      const newPoints = (annotation.points || []).map((p) => {
+        // Position relative to old bounding box (0 to 1 range)
+        const relX = (p.x - resizeStartBounds.x) / oldWidth;
+        const relY = (p.y - resizeStartBounds.y) / oldHeight;
 
-      // Clamp scales to reasonable ranges to reduce sensitivity
-      const MIN_SCALE = 0.3;
-      const MAX_SCALE = 3;
-      scaleX = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleX));
-      scaleY = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleY));
-
-      const newPoints = (annotation.points || []).map((p) => ({
-        x: newBounds.x + (p.x - resizeStartBounds.x) * scaleX,
-        y: newBounds.y + (p.y - resizeStartBounds.y) * scaleY,
-      }));
+        // Apply new bounds
+        return {
+          x: newBounds.x + relX * newBounds.width,
+          y: newBounds.y + relY * newBounds.height,
+        };
+      });
 
       onAnnotationUpdate(resizeAnnotationId, {
         points: newPoints,
