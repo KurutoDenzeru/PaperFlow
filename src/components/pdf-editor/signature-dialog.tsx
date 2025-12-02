@@ -15,15 +15,18 @@ export function SignatureDialog({ open, onOpenChange, onSignatureInsert }: Signa
   const [isDragging, setIsDragging] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [mode, setMode] = useState<'upload' | 'draw'>('upload');
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // Drawing area is an SVG overlay instead of a pixel canvas for crisp vector lines
+  const drawingAreaRef = useRef<HTMLDivElement | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const drawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
+  const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
 
   useEffect(() => {
     if (!open) {
       setPreviewImage(null);
       setMode('upload');
-      clearCanvas();
+      setPoints([]);
     }
   }, [open]);
 
@@ -63,110 +66,55 @@ export function SignatureDialog({ open, onOpenChange, onSignatureInsert }: Signa
   }, [processImage]);
 
   const clearCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    // Reset transform, clear with respect to actual pixel size, then restore transform
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Optionally fill with white background to avoid transparent edges
-    ctx.fillStyle = 'rgba(255,255,255,0)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Re-apply DPI scaling if necessary
-    const ratio = window.devicePixelRatio || 1;
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.lineWidth = 2; // match setup
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    setPoints([]);
+    setPreviewImage(null);
   }, []);
 
-  // Setup high-DPI canvas and drawing attributes
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  // Not using a pixel canvas; drawing is vector-based SVG so we don't require high-DPI setup
 
-    const setupCanvas = () => {
-      const ratio = window.devicePixelRatio || 1;
-      const { width, height } = canvas.getBoundingClientRect();
-      if (width === 0 || height === 0) return;
-      const dprWidth = Math.round(width * ratio);
-      const dprHeight = Math.round(height * ratio);
-      if (canvas.width !== dprWidth || canvas.height !== dprHeight) {
-        canvas.width = dprWidth;
-        canvas.height = dprHeight;
-      }
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      // Reset & apply proper device pixel ratio scaling so drawing matches pointer coordinates
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      ctx.lineWidth = 2; // visually this will be scaled by ratio
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = '#000000';
-    };
-
-    // Initial setup and resize handling
-    setupCanvas();
-    const onResize = () => setupCanvas();
-    window.addEventListener('resize', onResize);
-    return () => {
-      window.removeEventListener('resize', onResize);
-    };
-  }, [open]);
-
-  const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const startDrawing = (e: React.PointerEvent<SVGSVGElement>) => {
     e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const svg = svgRef.current;
+    const container = drawingAreaRef.current;
+    if (!svg || !container) return;
     drawing.current = true;
-    const rect = canvas.getBoundingClientRect();
+    const rect = container.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
+    setPoints((prev) => [...prev, { x, y }]);
     lastPos.current = { x, y };
     // Capture pointer so we receive move/up outside the canvas
     try {
-      (e.target as HTMLCanvasElement).setPointerCapture?.(e.pointerId);
+      (e.currentTarget as SVGSVGElement).setPointerCapture?.(e.pointerId);
     } catch (err) {
       // ignore if not supported
     }
   };
 
-  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!drawing.current) return;
     e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
+    const container = drawingAreaRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    // Draw smoothing using quadratic curve to midpoint between last and current
-    if (lastPos.current) {
-      const last = lastPos.current;
-      const midX = (last.x + x) / 2;
-      const midY = (last.y + y) / 2;
-      ctx.quadraticCurveTo(last.x, last.y, midX, midY);
-      ctx.stroke();
-      lastPos.current = { x, y };
-    } else {
-      ctx.lineTo(x, y);
-      ctx.stroke();
-      lastPos.current = { x, y };
-    }
+    // Append point for SVG polyline; we rely on many points for smooth lines
+    setPoints((prev) => {
+      // Avoid adding too many points if pointer hasn't moved much
+      const last = prev[prev.length - 1];
+      if (last && Math.hypot(last.x - x, last.y - y) < 0.5) return prev;
+      return [...prev, { x, y }];
+    });
+    lastPos.current = { x, y };
   };
 
-  const stopDrawing = (e?: React.PointerEvent<HTMLCanvasElement>) => {
+  const stopDrawing = (e?: React.PointerEvent<SVGSVGElement>) => {
     drawing.current = false;
     lastPos.current = null;
     if (e) {
       try {
-        (e.target as HTMLCanvasElement).releasePointerCapture?.(e.pointerId);
+        (e.currentTarget as SVGSVGElement).releasePointerCapture?.(e.pointerId);
       } catch (err) {
         // ignore
       }
@@ -181,13 +129,22 @@ export function SignatureDialog({ open, onOpenChange, onSignatureInsert }: Signa
         onOpenChange(false);
         toast.success('Signature inserted');
       }
-    } else {
-      const canvas = canvasRef.current;
-      if (!canvas) {
+      } else {
+      if (points.length === 0) {
         toast.error('No signature to insert');
         return;
       }
-      const imageData = canvas.toDataURL('image/png');
+      const container = drawingAreaRef.current;
+      const rect = container?.getBoundingClientRect();
+      const width = rect?.width || 400;
+      const height = rect?.height || 120;
+      const dpr = window.devicePixelRatio || 1;
+
+      // Build SVG markup
+      const strokeWidth = 2 * dpr; // scale stroke width with devicePixelRatio for crispness
+      const pointsAttr = points.map(p => `${p.x},${p.y}`).join(' ');
+      const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns='http://www.w3.org/2000/svg' width='${Math.round(width * dpr)}' height='${Math.round(height * dpr)}' viewBox='0 0 ${width} ${height}'>\n  <rect width='100%' height='100%' fill='none'/>\n  <polyline fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='${strokeWidth}' points='${pointsAttr}' />\n</svg>`;
+      const imageData = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
       onSignatureInsert(imageData);
       clearCanvas();
       onOpenChange(false);
@@ -250,16 +207,27 @@ export function SignatureDialog({ open, onOpenChange, onSignatureInsert }: Signa
             )
           ) : (
             <div className="space-y-2">
-              <div className="border rounded p-2 bg-white">
-                          <canvas
-                            ref={canvasRef}
-                            className="w-full h-40 bg-white touched"
-                            style={{ touchAction: 'none' }}
-                            onPointerDown={startDrawing}
-                            onPointerMove={draw}
-                            onPointerUp={stopDrawing}
-                            onPointerCancel={(e) => stopDrawing(e)}
-                          />
+              <div ref={drawingAreaRef} className="border rounded p-2 bg-white" style={{ touchAction: 'none' }}>
+                <svg
+                  ref={svgRef}
+                  className="w-full h-40 bg-white"
+                  onPointerDown={startDrawing}
+                  onPointerMove={draw}
+                  onPointerUp={stopDrawing}
+                  onPointerCancel={(e) => stopDrawing(e)}
+                >
+                  <rect x={0} y={0} width="100%" height="100%" fill="transparent" />
+                  {points.length > 0 && (
+                    <polyline
+                      points={points.map(p => `${p.x},${p.y}`).join(' ')}
+                      fill="none"
+                      stroke="#000"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  )}
+                </svg>
               </div>
             </div>
           )}
