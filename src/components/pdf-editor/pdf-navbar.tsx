@@ -1,4 +1,4 @@
-import { Download, Undo, Redo, Trash2, Plus, RotateCw, MoreVertical, FileIcon, RotateCcw, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Grid3x3 } from 'lucide-react';
+import { Download, Undo, Redo, Trash2, RotateCw, MoreVertical, FileIcon, RotateCcw, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Grid3x3 } from 'lucide-react';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,7 @@ export function PDFNavbar({
   onUndo,
   onRedo,
   onDeleteSelected,
-  onAddPage,
+  onAddPage: _onAddPage,
   onRotate,
   onNewSession,
   onResetSession,
@@ -125,24 +125,7 @@ export function PDFNavbar({
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Page Menu */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-sm px-2 py-0 h-6 hover:bg-accent">
-                      Page
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuItem onClick={onAddPage}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      <span>Add Page</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onRotate}>
-                      <RotateCw className="w-4 h-4 mr-2" />
-                      <span>Rotate Page</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {/* Page menu removed: Add Page moved/hidden; Rotate Page moved to View menu */}
 
                 {/* View Menu */}
                 <DropdownMenu>
@@ -230,6 +213,11 @@ export function PDFNavbar({
                         </Button>
                       </div>
                     </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={onRotate}>
+                      <RotateCw className="w-4 h-4 mr-2" />
+                      <span>Rotate Page</span>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -272,15 +260,6 @@ export function PDFNavbar({
                 <DropdownMenuItem onClick={onExport}>
                   <Download className="w-4 h-4 mr-2" />
                   <span>Export PDF</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onAddPage}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  <span>Add Page</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onRotate}>
-                  <RotateCw className="w-4 h-4 mr-2" />
-                  <span>Rotate Page</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onNewSession}>

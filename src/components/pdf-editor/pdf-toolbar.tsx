@@ -105,7 +105,7 @@ export function PDFToolbar({
   const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
   const [openColorDropdown, setOpenColorDropdown] = useState<'fill' | 'stroke' | null>(null);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
-  
+
   // Check if selected annotation is a text annotation
   const selectedAnnotation = selectedAnnotationId && annotations ? annotations.find(a => a.id === selectedAnnotationId) : null;
   const isTextAnnotationSelected = selectedAnnotation?.type === 'text';
@@ -141,11 +141,10 @@ export function PDFToolbar({
                       <TooltipTrigger asChild>
                         <DropdownMenuTrigger asChild>
                           <button
-                            className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center cursor-pointer ${
-                              shapeTools.some(t => t.tool === currentTool)
+                            className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center cursor-pointer ${shapeTools.some(t => t.tool === currentTool)
                                 ? 'bg-primary text-primary-foreground shadow-md'
                                 : 'hover:bg-background/50'
-                            }`}
+                              }`}
                           >
                             {icon}
                           </button>
@@ -159,11 +158,10 @@ export function PDFToolbar({
                           <button
                             key={shapeTool}
                             onClick={() => onToolChange(shapeTool)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                              currentTool === shapeTool
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${currentTool === shapeTool
                                 ? 'bg-primary text-primary-foreground shadow-md'
                                 : 'bg-background hover:bg-accent hover:shadow-sm'
-                            }`}
+                              }`}
                           >
                             {shapeIcon}
                             <span>{shapeLabel}</span>
@@ -182,11 +180,10 @@ export function PDFToolbar({
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => setImageDialogOpen(true)}
-                        className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center cursor-pointer ${
-                          currentTool === tool
+                        className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center cursor-pointer ${currentTool === tool
                             ? 'bg-primary text-primary-foreground shadow-md'
                             : 'hover:bg-background/50'
-                        }`}
+                          }`}
                       >
                         {icon}
                       </button>
@@ -196,37 +193,36 @@ export function PDFToolbar({
                 );
               }
 
-                // Signature tool: open signature dialog
-                if (tool === 'signature') {
-                  return (
-                    <Tooltip key={tool}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={currentTool === 'signature' ? 'default' : 'ghost'}
-                          size="sm"
-                          className="rounded p-2"
-                          onClick={() => setSignatureDialogOpen(true)}
-                          title="Insert signature"
-                        >
-                          {icon}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="hidden sm:block">{label}</TooltipContent>
-                    </Tooltip>
-                  );
-                }
+              // Signature tool: open signature dialog
+              if (tool === 'signature') {
+                return (
+                  <Tooltip key={tool}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={currentTool === 'signature' ? 'default' : 'ghost'}
+                        size="sm"
+                        className="rounded p-2"
+                        onClick={() => setSignatureDialogOpen(true)}
+                        title="Insert signature"
+                      >
+                        {icon}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="hidden sm:block">{label}</TooltipContent>
+                  </Tooltip>
+                );
+              }
 
-                // Regular toggle items
+              // Regular toggle items
               return (
                 <Tooltip key={tool}>
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => onToolChange(tool as Tool)}
-                      className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center cursor-pointer ${
-                        currentTool === tool
+                      className={`h-8 w-8 md:h-9 md:w-9 px-1 rounded transition-all flex items-center justify-center cursor-pointer ${currentTool === tool
                           ? 'bg-primary text-primary-foreground shadow-md'
                           : 'hover:bg-background/50'
-                      }`}
+                        }`}
                     >
                       {icon}
                     </button>
@@ -241,69 +237,67 @@ export function PDFToolbar({
 
           {/* Color Picker - Hide for highlight tool */}
           {shouldShowColorPicker && (
-          <DropdownMenu open={openColorDropdown === 'fill'} onOpenChange={(open) => {
-            if (open) {
-              setOpenColorDropdown('fill');
-            } else {
-              setOpenColorDropdown(null);
-            }
-          }}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2 h-8 md:h-9 px-2 shrink-0">
-                    <Palette className="w-4 h-4 shrink-0" />
-                    <div
-                      className="w-3 h-3 md:w-4 md:h-4 rounded border shrink-0"
-                      style={{ 
-                        backgroundColor: currentColor === 'transparent' ? 'transparent' : currentColor,
-                        backgroundImage: currentColor === 'transparent' ? 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)' : 'none'
-                      }}
-                    />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent className="hidden sm:block">Fill Color</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent className="w-74">
-              <div className="grid grid-cols-6 gap-1 p-1.5">
-                <button
-                  className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${
-                    currentColor === 'transparent' ? 'ring-2 ring-offset-2 ring-blue-500' : ''
-                  }`}
-                  style={{
-                    borderColor: currentColor === 'transparent' ? '#000' : '#e5e7eb',
-                    backgroundImage: 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)'
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onColorChange('transparent');
-                    setOpenColorDropdown(null);
-                  }}
-                  title="Transparent"
-                >
-                  ✕
-                </button>
-                {colors.map((color) => (
+            <DropdownMenu open={openColorDropdown === 'fill'} onOpenChange={(open) => {
+              if (open) {
+                setOpenColorDropdown('fill');
+              } else {
+                setOpenColorDropdown(null);
+              }
+            }}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 h-8 md:h-9 px-2 shrink-0">
+                      <Palette className="w-4 h-4 shrink-0" />
+                      <div
+                        className="w-3 h-3 md:w-4 md:h-4 rounded border shrink-0"
+                        style={{
+                          backgroundColor: currentColor === 'transparent' ? 'transparent' : currentColor,
+                          backgroundImage: currentColor === 'transparent' ? 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)' : 'none'
+                        }}
+                      />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent className="hidden sm:block">Fill Color</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent className="w-74">
+                <div className="grid grid-cols-6 gap-1 p-1.5">
                   <button
-                    key={color}
-                    className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${
-                      color === currentColor ? 'ring-2 ring-offset-2 ring-blue-500' : ''
-                    }`}
+                    className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${currentColor === 'transparent' ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                      }`}
                     style={{
-                      backgroundColor: color,
-                      borderColor: color === currentColor ? '#000' : '#e5e7eb'
+                      borderColor: currentColor === 'transparent' ? '#000' : '#e5e7eb',
+                      backgroundImage: 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)'
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      onColorChange(color);
+                      onColorChange('transparent');
                       setOpenColorDropdown(null);
                     }}
-                  />
-                ))}
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                    title="Transparent"
+                  >
+                    ✕
+                  </button>
+                  {colors.map((color) => (
+                    <button
+                      key={color}
+                      className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${color === currentColor ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                        }`}
+                      style={{
+                        backgroundColor: color,
+                        borderColor: color === currentColor ? '#000' : '#e5e7eb'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onColorChange(color);
+                        setOpenColorDropdown(null);
+                      }}
+                    />
+                  ))}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
 
           {/* Stroke/Outline Color Picker */}
@@ -321,7 +315,7 @@ export function PDFToolbar({
                     <Button variant="outline" size="sm" className="gap-2 h-8 md:h-9 px-2 shrink-0 flex items-center justify-center">
                       <SquareDashed className="w-4 h-4 shrink-0" />
                       <div className="w-3 h-3 rounded border-2 flex items-center justify-center"
-                        style={{ 
+                        style={{
                           borderColor: strokeColor === 'transparent' ? '#ccc' : strokeColor,
                           backgroundColor: 'transparent'
                         }}>
@@ -334,9 +328,8 @@ export function PDFToolbar({
               <DropdownMenuContent className="w-74">
                 <div className="grid grid-cols-6 gap-1 p-1.5">
                   <button
-                    className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${
-                      strokeColor === 'transparent' ? 'ring-2 ring-offset-2 ring-blue-500' : ''
-                    }`}
+                    className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${strokeColor === 'transparent' ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                      }`}
                     style={{
                       borderColor: strokeColor === 'transparent' ? '#000' : '#e5e7eb',
                       backgroundImage: 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)'
@@ -353,9 +346,8 @@ export function PDFToolbar({
                   {colors.map((color) => (
                     <button
                       key={color}
-                      className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${
-                        color === strokeColor ? 'ring-2 ring-offset-2 ring-blue-500' : ''
-                      }`}
+                      className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${color === strokeColor ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                        }`}
                       style={{
                         backgroundColor: color,
                         borderColor: color === strokeColor ? '#000' : '#e5e7eb'
@@ -376,21 +368,21 @@ export function PDFToolbar({
 
           {/* Stroke Width */}
           {shouldShowStrokeOptions && (
-          <div className="hidden md:flex items-center gap-2 px-2 shrink-0">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">Width:</span>
-            <Select value={strokeWidth.toString()} onValueChange={(value) => onStrokeWidthChange(parseInt(value))}>
-              <SelectTrigger className="w-20 h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((width) => (
-                  <SelectItem key={width} value={width.toString()}>
-                    {width}px
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="hidden md:flex items-center gap-2 px-2 shrink-0">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">Width:</span>
+              <Select value={strokeWidth.toString()} onValueChange={(value) => onStrokeWidthChange(parseInt(value))}>
+                <SelectTrigger className="w-20 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((width) => (
+                    <SelectItem key={width} value={width.toString()}>
+                      {width}px
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {/* Text Formatting Tools - Show when Text tool is selected OR text annotation is selected */}
@@ -496,7 +488,7 @@ export function PDFToolbar({
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-8 w-8 md:h-9 md:w-9 px-0 shrink-0 relative">
                           <div className="w-4 h-4 rounded border border-foreground/30 flex items-center justify-center"
-                            style={{ 
+                            style={{
                               backgroundColor: backgroundColor === 'transparent' ? 'transparent' : backgroundColor,
                               backgroundImage: backgroundColor === 'transparent' ? 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)' : 'none'
                             }}>
@@ -509,9 +501,8 @@ export function PDFToolbar({
                   <DropdownMenuContent className="w-84">
                     <div className="grid grid-cols-6 gap-3 p-2">
                       <button
-                        className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${
-                          backgroundColor === 'transparent' ? 'ring-2 ring-offset-2 ring-blue-500' : ''
-                        }`}
+                        className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer flex items-center justify-center ${backgroundColor === 'transparent' ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                          }`}
                         style={{
                           borderColor: backgroundColor === 'transparent' ? '#000' : '#e5e7eb',
                           backgroundImage: 'linear-gradient(45deg, transparent 48%, #ccc 48%, #ccc 52%, transparent 52%)'
@@ -529,9 +520,8 @@ export function PDFToolbar({
                       {colors.map((color) => (
                         <button
                           key={color}
-                          className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${
-                            color === backgroundColor ? 'ring-2 ring-offset-2 ring-blue-500' : ''
-                          }`}
+                          className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer ${color === backgroundColor ? 'ring-2 ring-offset-2 ring-blue-500' : ''
+                            }`}
                           style={{
                             backgroundColor: color,
                             borderColor: color === backgroundColor ? '#000' : '#e5e7eb'
