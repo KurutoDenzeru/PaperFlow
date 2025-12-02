@@ -8,6 +8,7 @@ export type Tool =
   | 'arrow'
   | 'highlight'
   | 'pen'
+  | 'signature'
   | 'eraser';
 
 export interface Point {

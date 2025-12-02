@@ -203,24 +203,19 @@ export function PDFCanvas({
   }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (currentTool === 'select') return;
+    // If it's select mode or a tool that does not support drawing, do nothing
+    if (currentTool === 'select' || currentTool === 'signature' || currentTool === 'image') return;
 
     const point = getRelativePosition(e);
     setIsDrawing(true);
     setStartPoint(point);
-
-    if (currentTool === 'pen') {
-      setCurrentPoints([point]);
-    }
+    // We intentionally do not handle freehand 'pen' drawing here - signature insertion
+    // is handled via the SignatureDialog and inserted as an image-type annotation.
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = (_e: React.MouseEvent) => {
     if (!isDrawing || !startPoint) return;
-
-    if (currentTool === 'pen') {
-      const point = getRelativePosition(e);
-      setCurrentPoints(prev => [...prev, point]);
-    }
+    // No freehand drawing support for signature - other shapes update via drag
   };
 
   const handleMouseUp = (e: React.MouseEvent) => {
@@ -280,17 +275,21 @@ export function PDFCanvas({
       case 'arrow':
         annotation.endPoint = endPoint;
         break;
-      case 'pen':
-        annotation.points = currentPoints;
-        // Normalize pen position to top-left of the points' bounding box
-        if (currentPoints && currentPoints.length > 0) {
-          const xs = currentPoints.map(p => p.x);
-          const ys = currentPoints.map(p => p.y);
-          const minX = Math.min(...xs);
-          const minY = Math.min(...ys);
-          annotation.position = { x: minX, y: minY };
-        }
-        break;
+        case 'pen':
+          // Legacy: if we encounter a pen annotation in state, we won't create new ones via UI.
+          // If pen points exist (legacy), normalize bounds for proper rendering.
+          if (currentPoints && currentPoints.length > 0) {
+            annotation.points = currentPoints;
+            const xs = currentPoints.map(p => p.x);
+            const ys = currentPoints.map(p => p.y);
+            const minX = Math.min(...xs);
+            const minY = Math.min(...ys);
+            annotation.position = { x: minX, y: minY };
+          }
+          break;
+        case 'signature':
+          // signature annotations are inserted via the Signature Dialog and already contain imageData, width & height
+          break;
     }
 
     onAnnotationAdd(annotation);
@@ -521,23 +520,26 @@ export function PDFCanvas({
         height: newBounds.height,
       });
     } else if (annotation.type === 'pen') {
-      // For pen annotations, scale points relative to their position within the bounding box
-      // This preserves the shape while resizing
-      const oldWidth = Math.max(resizeStartBounds.width, minSize);
-      const oldHeight = Math.max(resizeStartBounds.height, minSize);
+      // Scale pen points relative to the start bounds so the pen drawing scales with the bounding box
+      // Avoid extreme scaling when the start bounds are very small by using a
+      // minimum base size. Clamp scale factors to keep resize interaction
+      // predictable and less sensitive.
+      const baseOldWidth = Math.max(resizeStartBounds.width, minSize);
+      const baseOldHeight = Math.max(resizeStartBounds.height, minSize);
 
-      // Transform each point: normalize to bounding box space, then apply new bounds
-      const newPoints = (annotation.points || []).map((p) => {
-        // Position relative to old bounding box (0 to 1 range)
-        const relX = (p.x - resizeStartBounds.x) / oldWidth;
-        const relY = (p.y - resizeStartBounds.y) / oldHeight;
+      let scaleX = newBounds.width / baseOldWidth;
+      let scaleY = newBounds.height / baseOldHeight;
 
-        // Apply new bounds
-        return {
-          x: newBounds.x + relX * newBounds.width,
-          y: newBounds.y + relY * newBounds.height,
-        };
-      });
+      // Clamp scales to reasonable ranges to reduce sensitivity
+      const MIN_SCALE = 0.3;
+      const MAX_SCALE = 3;
+      scaleX = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleX));
+      scaleY = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleY));
+
+      const newPoints = (annotation.points || []).map((p) => ({
+        x: newBounds.x + (p.x - resizeStartBounds.x) * scaleX,
+        y: newBounds.y + (p.y - resizeStartBounds.y) * scaleY,
+      }));
 
       onAnnotationUpdate(resizeAnnotationId, {
         points: newPoints,
@@ -988,6 +990,32 @@ export function PDFCanvas({
               <img
                 src={annotation.imageData}
                 alt="Annotation"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  pointerEvents: 'none',
+                }}
+              />
+            </div>
+          );
+
+        case 'signature':
+          return (
+            <div
+              {...commonProps}
+              style={{
+                ...commonProps.style,
+                left: annotation.position.x,
+                top: annotation.position.y,
+                width: annotation.width,
+                height: annotation.height,
+                overflow: 'hidden',
+              }}
+            >
+              <img
+                src={annotation.imageData}
+                alt="Signature"
                 style={{
                   width: '100%',
                   height: '100%',

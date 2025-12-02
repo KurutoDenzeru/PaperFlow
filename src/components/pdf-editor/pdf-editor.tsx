@@ -336,6 +336,20 @@ export function PDFEditor() {
     setCurrentTool('select');
   };
 
+  const handleSignatureInsert = (imageData: string) => {
+    const annotation: Omit<Annotation, 'id'> = {
+      type: 'signature',
+      pageNumber: pdfState.currentPage,
+      position: { x: 100, y: 100 },
+      width: 200,
+      height: 80,
+      color: 'transparent',
+      imageData,
+    };
+    handleAnnotationAdd(annotation);
+    setCurrentTool('select');
+  };
+
   const handleAnnotationUpdate = (id: string, updates: Partial<Annotation>) => {
     const newAnnotations = pdfState.annotations.map(a =>
       a.id === id ? { ...a, ...updates } : a
@@ -794,6 +808,7 @@ export function PDFEditor() {
         textAlign={textAlign}
         onTextAlignChange={setTextAlign}
         onImageSelect={handleImageSelect}
+        onSignatureInsert={handleSignatureInsert}
       />
 
       <div className="flex-1 flex overflow-hidden relative w-full">

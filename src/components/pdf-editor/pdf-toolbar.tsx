@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { Tool, Annotation } from '@/types/pdf';
 import { ImageUploadDialog } from './image-upload-dialog';
-import { MousePointer2, Type, Square, Circle, Minus, MoveRight, Highlighter, Pen, RotateCw, Trash2, Palette, SquareDashed, MoreHorizontal, PanelRight, AlignLeft, AlignCenter, AlignRight, Image } from 'lucide-react';
+import SignatureDialog from './signature-dialog';
+import { MousePointer2, Type, Square, Circle, Minus, MoveRight, Highlighter, Pen, FileSignature, RotateCw, Trash2, Palette, SquareDashed, MoreHorizontal, PanelRight, AlignLeft, AlignCenter, AlignRight, Image } from 'lucide-react';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ interface PDFToolbarProps {
   textAlign?: 'left' | 'center' | 'right';
   onTextAlignChange?: (align: 'left' | 'center' | 'right') => void;
   onImageSelect?: (imageData: string) => void;
+  onSignatureInsert?: (imageData: string) => void;
 }
 
 const colors = [
@@ -56,7 +58,7 @@ const mainTools: { tool: Tool | 'shapes'; icon: React.ReactNode; label: string }
   { tool: 'image', icon: <Image className="w-4 h-4" />, label: 'Image' },
   { tool: 'shapes', icon: <Square className="w-4 h-4" />, label: 'Shapes' },
   { tool: 'highlight', icon: <Highlighter className="w-4 h-4" />, label: 'Highlight' },
-  { tool: 'pen', icon: <Pen className="w-4 h-4" />, label: 'Pen' },
+  { tool: 'signature', icon: <FileSignature className="w-4 h-4" />, label: 'Signature' },
 ];
 
 const shapeTools: { tool: Tool; icon: React.ReactNode; label: string }[] = [
@@ -98,7 +100,9 @@ export function PDFToolbar({
   textAlign,
   onTextAlignChange,
   onImageSelect,
+  onSignatureInsert,
 }: PDFToolbarProps) {
+  const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
   const [openColorDropdown, setOpenColorDropdown] = useState<'fill' | 'stroke' | null>(null);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   
@@ -192,7 +196,27 @@ export function PDFToolbar({
                 );
               }
 
-              // Regular toggle items
+                // Signature tool: open signature dialog
+                if (tool === 'signature') {
+                  return (
+                    <Tooltip key={tool}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={currentTool === 'signature' ? 'default' : 'ghost'}
+                          size="sm"
+                          className="rounded p-2"
+                          onClick={() => setSignatureDialogOpen(true)}
+                          title="Insert signature"
+                        >
+                          {icon}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="hidden sm:block">{label}</TooltipContent>
+                    </Tooltip>
+                  );
+                }
+
+                // Regular toggle items
               return (
                 <Tooltip key={tool}>
                   <TooltipTrigger asChild>
@@ -660,6 +684,12 @@ export function PDFToolbar({
         onOpenChange={setImageDialogOpen}
         onImageSelect={handleImageSelect}
       />
+
+      {/* Signature Dialog */}
+      <SignatureDialog open={signatureDialogOpen} onOpenChange={setSignatureDialogOpen} onSignatureInsert={(img) => {
+        if (onSignatureInsert) onSignatureInsert(img);
+        setSignatureDialogOpen(false);
+      }} />
     </TooltipProvider>
   );
 }
