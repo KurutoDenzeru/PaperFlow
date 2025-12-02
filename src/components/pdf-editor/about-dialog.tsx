@@ -1,7 +1,6 @@
-import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Github, Linkedin, Instagram, ExternalLink, X } from 'lucide-react';
+import { Github, Linkedin, Instagram, X, Info } from 'lucide-react';
 
 interface AboutDialogProps {
   open: boolean;
@@ -13,7 +12,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>About PaperFlow</DialogTitle>
+          <DialogTitle className="flex items-center gap-2"><Info className="w-5 h-5"/>About PaperFlow</DialogTitle>
           <DialogDescription>
             Project details, tech stack and social links.
           </DialogDescription>
@@ -39,18 +38,18 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
           <div>
             <p className="font-semibold">Project Links</p>
             <div className="flex items-center gap-2 mt-2">
-              <Button variant="ghost" asChild>
+              <Button variant="outline" asChild>
                 <a href="https://github.com/KurutoDenzeru/PaperFlow" target="_blank" rel="noreferrer">
                   <Github className="w-4 h-4 mr-2" /> GitHub
                 </a>
               </Button>
-              <Button variant="ghost" asChild>
-                <a href="https://www.linkedin.com/in/your-profile" target="_blank" rel="noreferrer">
+              <Button variant="outline" asChild>
+                <a href="https://www.linkedin.com/in/kurtcalacday/" target="_blank" rel="noreferrer">
                   <Linkedin className="w-4 h-4 mr-2" /> LinkedIn
                 </a>
               </Button>
-              <Button variant="ghost" asChild>
-                <a href="https://www.instagram.com/your-profile" target="_blank" rel="noreferrer">
+              <Button variant="outline" asChild>
+                <a href="https://www.instagram.com/krtclcdy/" target="_blank" rel="noreferrer">
                   <Instagram className="w-4 h-4 mr-2" /> Instagram
                 </a>
               </Button>
