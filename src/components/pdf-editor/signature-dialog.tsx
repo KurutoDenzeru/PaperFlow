@@ -138,7 +138,7 @@ export function SignatureDialog({ open, onOpenChange, onSignatureInsert }: Signa
             Insert Signature
           </DialogTitle>
           <DialogDescription>
-            Add a signature by uploading an image or drawing one below. Your signature will be inserted as a resizable and rotatable element.
+            Add a signature by uploading an image or drawing one below. It’ll be added as a resizable, rotatable element.
           </DialogDescription>
         </DialogHeader>
 
