@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { FileSignature, Check, X, Upload, Trash2, Pen } from 'lucide-react';
+import { FileSignature, Check, X, Upload, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -77,7 +77,7 @@ export function SignatureDialog({ open, onOpenChange, onSignatureInsert }: Signa
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.strokeStyle = '#000000';
-  }, [canvasRef.current]);
+  }, []);
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current;

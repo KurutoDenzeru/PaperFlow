@@ -85,6 +85,8 @@ export function PDFSidebar({
         return <Highlighter className="w-4 h-4" />;
       case 'pen':
         return <Pen className="w-4 h-4" />;
+      case 'signature':
+        return <FileText className="w-4 h-4" />;
       case 'eraser':
         return <Eraser className="w-4 h-4" />;
       case 'image':

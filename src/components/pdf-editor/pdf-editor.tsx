@@ -128,7 +128,7 @@ export function PDFEditor() {
   useEffect(() => {
     if (selectedAnnotationId && currentTool === 'select') {
       const selectedAnnotation = pdfState.annotations.find(a => a.id === selectedAnnotationId);
-      if (selectedAnnotation && (selectedAnnotation.type === 'rectangle' || selectedAnnotation.type === 'circle' || selectedAnnotation.type === 'line' || selectedAnnotation.type === 'arrow' || selectedAnnotation.type === 'highlight' || selectedAnnotation.type === 'pen' || selectedAnnotation.type === 'eraser')) {
+      if (selectedAnnotation && (selectedAnnotation.type === 'rectangle' || selectedAnnotation.type === 'circle' || selectedAnnotation.type === 'line' || selectedAnnotation.type === 'arrow' || selectedAnnotation.type === 'highlight' || selectedAnnotation.type === 'eraser')) {
         const newAnnotations = pdfState.annotations.map(a =>
           a.id === selectedAnnotationId ? {
             ...a,
