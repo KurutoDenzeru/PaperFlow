@@ -282,6 +282,14 @@ export function PDFCanvas({
         break;
       case 'pen':
         annotation.points = currentPoints;
+        // Normalize pen position to top-left of the points' bounding box
+        if (currentPoints && currentPoints.length > 0) {
+          const xs = currentPoints.map(p => p.x);
+          const ys = currentPoints.map(p => p.y);
+          const minX = Math.min(...xs);
+          const minY = Math.min(...ys);
+          annotation.position = { x: minX, y: minY };
+        }
         break;
     }
 
@@ -511,6 +519,22 @@ export function PDFCanvas({
         position: { x: newBounds.x, y: newBounds.y },
         width: newBounds.width,
         height: newBounds.height,
+      });
+    } else if (annotation.type === 'pen') {
+      // Scale pen points relative to the start bounds so the pen drawing scales with the bounding box
+      const oldWidth = resizeStartBounds.width || 1;
+      const oldHeight = resizeStartBounds.height || 1;
+      const scaleX = newBounds.width / oldWidth;
+      const scaleY = newBounds.height / oldHeight;
+
+      const newPoints = (annotation.points || []).map((p) => ({
+        x: newBounds.x + (p.x - resizeStartBounds.x) * scaleX,
+        y: newBounds.y + (p.y - resizeStartBounds.y) * scaleY,
+      }));
+
+      onAnnotationUpdate(resizeAnnotationId, {
+        points: newPoints,
+        position: { x: newBounds.x, y: newBounds.y },
       });
     }
   };
@@ -1048,28 +1072,32 @@ export function PDFCanvas({
 
         case 'pen':
           if (!annotation.points || annotation.points.length < 2) return null;
+          const penBounds = getAnnotationBounds(annotation);
+          if (penBounds.width === 0 && penBounds.height === 0) return null;
           return (
-            <svg
+            <div
               {...commonProps}
               style={{
                 ...commonProps.style,
-                left: 0,
-                top: 0,
-                width: '100%',
-                height: '100%',
-                pointerEvents: 'none',
+                left: penBounds.x,
+                top: penBounds.y,
+                width: penBounds.width,
+                height: penBounds.height,
+                pointerEvents: 'auto',
               }}
             >
-              <polyline
-                points={annotation.points.map(p => `${p.x},${p.y}`).join(' ')}
-                fill="none"
-                stroke={annotation.color}
-                strokeWidth={annotation.strokeWidth}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ pointerEvents: 'all' }}
-              />
-            </svg>
+              <svg width="100%" height="100%" style={{ display: 'block', pointerEvents: 'none' }}>
+                <polyline
+                  points={annotation.points.map(p => `${p.x - penBounds.x},${p.y - penBounds.y}`).join(' ')}
+                  fill="none"
+                  stroke={annotation.color}
+                  strokeWidth={annotation.strokeWidth}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ pointerEvents: 'none' }}
+                />
+              </svg>
+            </div>
           );
 
         default:
