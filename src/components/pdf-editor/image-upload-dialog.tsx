@@ -92,10 +92,11 @@ export function ImageUploadDialog({ open, onOpenChange, onImageSelect }: ImageUp
           </DialogDescription>
           {/* Clear / Trash actions below description - show when preview is present */}
           {previewImage && (
-            <div className="mt-2 flex items-center gap-2 justify-end">
+            <div className="mt-2 flex gap-2 items-center">
+              <div className="flex-1" />
               <Button variant="outline" size="sm" onClick={() => setPreviewImage(null)}>
+                <Trash2 className="w-4 h-4 mr-2" />
                 Clear
-                <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           )}
