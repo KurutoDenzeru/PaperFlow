@@ -522,10 +522,20 @@ export function PDFCanvas({
       });
     } else if (annotation.type === 'pen') {
       // Scale pen points relative to the start bounds so the pen drawing scales with the bounding box
-      const oldWidth = resizeStartBounds.width || 1;
-      const oldHeight = resizeStartBounds.height || 1;
-      const scaleX = newBounds.width / oldWidth;
-      const scaleY = newBounds.height / oldHeight;
+      // Avoid extreme scaling when the start bounds are very small by using a
+      // minimum base size. Clamp scale factors to keep resize interaction
+      // predictable and less sensitive.
+      const baseOldWidth = Math.max(resizeStartBounds.width, minSize);
+      const baseOldHeight = Math.max(resizeStartBounds.height, minSize);
+
+      let scaleX = newBounds.width / baseOldWidth;
+      let scaleY = newBounds.height / baseOldHeight;
+
+      // Clamp scales to reasonable ranges to reduce sensitivity
+      const MIN_SCALE = 0.3;
+      const MAX_SCALE = 3;
+      scaleX = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleX));
+      scaleY = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleY));
 
       const newPoints = (annotation.points || []).map((p) => ({
         x: newBounds.x + (p.x - resizeStartBounds.x) * scaleX,
