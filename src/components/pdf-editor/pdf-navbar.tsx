@@ -1,9 +1,12 @@
-import { Download, Undo, Redo, Trash2, RotateCw, MoreVertical, FileIcon, RotateCcw, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Grid3x3 } from 'lucide-react';
+import { Download, Undo, Redo, Trash2, RotateCw, MoreVertical, FileIcon, RotateCcw, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Grid3x3, HelpCircle, Info } from 'lucide-react';
+import { useState } from 'react';
 
 // Components
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import HowToDialog from './howto-dialog';
+import AboutDialog from './about-dialog';
 
 interface PDFNavbarProps {
   fileName?: string;
@@ -48,6 +51,8 @@ export function PDFNavbar({
   viewMode = 'single',
   onViewModeChange,
 }: PDFNavbarProps) {
+  const [howToOpen, setHowToOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   // Remove .pdf extension from display name
   const cleanFileName = fileName.endsWith('.pdf') ? fileName.slice(0, -4) : fileName;
 
@@ -220,6 +225,24 @@ export function PDFNavbar({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                  {/* Help Menu */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="text-sm px-2 py-0 h-6 hover:bg-accent">
+                        Help
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuItem onClick={() => setHowToOpen(true)}>
+                        <HelpCircle className="w-4 h-4 mr-2" />
+                        <span>How to use</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setAboutOpen(true)}>
+                        <Info className="w-4 h-4 mr-2" />
+                        <span>About</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
               </div>
             </div>
           </div>
@@ -272,6 +295,9 @@ export function PDFNavbar({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            {/* Render dialogs here so they sit near the navbar root */}
+            <HowToDialog open={howToOpen} onOpenChange={setHowToOpen} />
+            <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
           </div>
         </div>
       </nav>
