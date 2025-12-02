@@ -17,6 +17,7 @@ export function SignatureDialog({ open, onOpenChange, onSignatureInsert }: Signa
   const [mode, setMode] = useState<'upload' | 'draw'>('upload');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawing = useRef(false);
+  const lastPos = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -66,47 +67,111 @@ export function SignatureDialog({ open, onOpenChange, onSignatureInsert }: Signa
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    // Reset transform, clear with respect to actual pixel size, then restore transform
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // set white background to avoid transparent artifacts if desired
+    // Optionally fill with white background to avoid transparent edges
+    ctx.fillStyle = 'rgba(255,255,255,0)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Re-apply DPI scaling if necessary
+    const ratio = window.devicePixelRatio || 1;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.lineWidth = 2; // match setup
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
   }, []);
 
+  // Setup high-DPI canvas and drawing attributes
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#000000';
-  }, []);
 
-  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    const setupCanvas = () => {
+      const ratio = window.devicePixelRatio || 1;
+      const { width, height } = canvas.getBoundingClientRect();
+      if (width === 0 || height === 0) return;
+      const dprWidth = Math.round(width * ratio);
+      const dprHeight = Math.round(height * ratio);
+      if (canvas.width !== dprWidth || canvas.height !== dprHeight) {
+        canvas.width = dprWidth;
+        canvas.height = dprHeight;
+      }
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      // Reset & apply proper device pixel ratio scaling so drawing matches pointer coordinates
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.lineWidth = 2; // visually this will be scaled by ratio
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#000000';
+    };
+
+    // Initial setup and resize handling
+    setupCanvas();
+    const onResize = () => setupCanvas();
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+    };
+  }, [open]);
+
+  const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
     drawing.current = true;
     const rect = canvas.getBoundingClientRect();
-    const x = 'touches' in e ? (e as React.TouchEvent).touches[0].clientX - rect.left : (e as React.MouseEvent).clientX - rect.left;
-    const y = 'touches' in e ? (e as React.TouchEvent).touches[0].clientY - rect.top : (e as React.MouseEvent).clientY - rect.top;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.beginPath();
     ctx.moveTo(x, y);
+    lastPos.current = { x, y };
+    // Capture pointer so we receive move/up outside the canvas
+    try {
+      (e.target as HTMLCanvasElement).setPointerCapture?.(e.pointerId);
+    } catch (err) {
+      // ignore if not supported
+    }
   };
 
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!drawing.current) return;
+    e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const x = 'touches' in e ? (e as React.TouchEvent).touches[0].clientX - rect.left : (e as React.MouseEvent).clientX - rect.left;
-    const y = 'touches' in e ? (e as React.TouchEvent).touches[0].clientY - rect.top : (e as React.MouseEvent).clientY - rect.top;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    ctx.lineTo(x, y);
-    ctx.stroke();
+    // Draw smoothing using quadratic curve to midpoint between last and current
+    if (lastPos.current) {
+      const last = lastPos.current;
+      const midX = (last.x + x) / 2;
+      const midY = (last.y + y) / 2;
+      ctx.quadraticCurveTo(last.x, last.y, midX, midY);
+      ctx.stroke();
+      lastPos.current = { x, y };
+    } else {
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      lastPos.current = { x, y };
+    }
   };
 
-  const stopDrawing = () => { drawing.current = false; };
+  const stopDrawing = (e?: React.PointerEvent<HTMLCanvasElement>) => {
+    drawing.current = false;
+    lastPos.current = null;
+    if (e) {
+      try {
+        (e.target as HTMLCanvasElement).releasePointerCapture?.(e.pointerId);
+      } catch (err) {
+        // ignore
+      }
+    }
+  };
 
   const handleInsert = () => {
     if (mode === 'upload') {
@@ -186,19 +251,15 @@ export function SignatureDialog({ open, onOpenChange, onSignatureInsert }: Signa
           ) : (
             <div className="space-y-2">
               <div className="border rounded p-2 bg-white">
-                <canvas
-                  ref={canvasRef}
-                  width={400}
-                  height={120}
-                  className="w-full h-32 bg-white touched"
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                />
+                          <canvas
+                            ref={canvasRef}
+                            className="w-full h-40 bg-white touched"
+                            style={{ touchAction: 'none' }}
+                            onPointerDown={startDrawing}
+                            onPointerMove={draw}
+                            onPointerUp={stopDrawing}
+                            onPointerCancel={(e) => stopDrawing(e)}
+                          />
               </div>
             </div>
           )}
