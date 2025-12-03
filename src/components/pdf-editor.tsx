@@ -903,6 +903,7 @@ export function PDFEditor() {
                 break;
 
               case 'image':
+              case 'signature':
                 if (annotation.imageData && annotation.width && annotation.height) {
                   try {
                       // Optionally crop transparent padding for PNG/WebP to avoid oversized bounding box
