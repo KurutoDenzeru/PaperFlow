@@ -290,6 +290,74 @@ export function PDFEditor() {
     setHistoryIndex(0);
   };
 
+  // Helper: get natural dimensions of a data URL image
+  const getImageNaturalSize = (dataUrl: string): Promise<{ width: number; height: number }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = dataUrl;
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = reject;
+    });
+  };
+
+  // Helper: crop transparent edges for PNG/WebP images by inspecting alpha channel
+  const cropImageDataUrlToContent = async (dataUrl: string): Promise<string> => {
+    try {
+      // Only crop if PNG or WebP (formats with possible transparency)
+      if (!dataUrl.startsWith('data:image/png') && !dataUrl.startsWith('data:image/webp')) {
+        return dataUrl;
+      }
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return dataUrl;
+      ctx.drawImage(img, 0, 0);
+      const id = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+      // compute bounding box from alpha channel
+      let minX = canvas.width, minY = canvas.height, maxX = 0, maxY = 0;
+      const alphaThreshold = 10; // treat <=10 as transparent
+      let found = false;
+      for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+          const idx = (y * canvas.width + x) * 4 + 3; // alpha channel index
+          const alpha = id[idx];
+          if (alpha > alphaThreshold) {
+            found = true;
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+      if (!found) {
+        // nothing transparent found — return original
+        return dataUrl;
+      }
+      const cropW = maxX - minX + 1;
+      const cropH = maxY - minY + 1;
+      const outCanvas = document.createElement('canvas');
+      outCanvas.width = cropW;
+      outCanvas.height = cropH;
+      const outCtx = outCanvas.getContext('2d');
+      if (!outCtx) return dataUrl;
+      outCtx.drawImage(canvas, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+      return outCanvas.toDataURL('image/png');
+    } catch (err) {
+      console.warn('Failed to crop image:', err);
+      return dataUrl;
+    }
+  };
+
   const handleAnnotationAdd = (annotation: Annotation | Omit<Annotation, 'id'>) => {
     const id = 'id' in annotation ? annotation.id : `annotation-${Date.now()}-${Math.random()}`;
     const name = annotation.name || getNextName(annotation.type, pdfState.annotations);
@@ -323,32 +391,95 @@ export function PDFEditor() {
   };
 
   const handleImageSelect = (imageData: string) => {
-    // Create an image annotation at the center of the current page
-    const annotation: Omit<Annotation, 'id'> = {
-      type: 'image',
-      pageNumber: pdfState.currentPage,
-      position: { x: 100, y: 100 },
-      width: 200,
-      height: 200,
-      color: 'transparent',
-      imageData,
+    // Infer the natural image size and adjust the default annotation size to remove padding
+    const insert = async () => {
+      try {
+        const { width: naturalW, height: naturalH } = await getImageNaturalSize(imageData);
+        const maxW = 600;
+        const maxH = 600;
+        let w = naturalW;
+        let h = naturalH;
+        if (w > maxW) {
+          const scale = maxW / w;
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+        if (h > maxH) {
+          const scale = maxH / h;
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+        const annotation: Omit<Annotation, 'id'> = {
+          type: 'image',
+          pageNumber: pdfState.currentPage,
+          position: { x: 100, y: 100 },
+          width: w,
+          height: h,
+          color: 'transparent',
+          imageData,
+        };
+        handleAnnotationAdd(annotation);
+        setCurrentTool('select');
+      } catch (err) {
+        console.warn('Error reading image dimensions, falling back to default size', err);
+        handleAnnotationAdd({
+          type: 'image',
+          pageNumber: pdfState.currentPage,
+          position: { x: 100, y: 100 },
+          width: 200,
+          height: 200,
+          color: 'transparent',
+          imageData,
+        });
+        setCurrentTool('select');
+      }
     };
-    handleAnnotationAdd(annotation);
-    setCurrentTool('select');
+    insert();
   };
 
   const handleSignatureInsert = (imageData: string) => {
-    const annotation: Omit<Annotation, 'id'> = {
-      type: 'signature',
-      pageNumber: pdfState.currentPage,
-      position: { x: 100, y: 100 },
-      width: 200,
-      height: 80,
-      color: 'transparent',
-      imageData,
+    const insertSig = async () => {
+      try {
+        const { width: naturalW, height: naturalH } = await getImageNaturalSize(imageData);
+        const maxH = 120;
+        let w = naturalW;
+        let h = naturalH;
+        if (h > maxH) {
+          const scale = maxH / h;
+          h = Math.round(h * scale);
+          w = Math.round(w * scale);
+        }
+        if (w > 600) {
+          const scale = 600 / w;
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+        const annotation: Omit<Annotation, 'id'> = {
+          type: 'signature',
+          pageNumber: pdfState.currentPage,
+          position: { x: 100, y: 100 },
+          width: w,
+          height: h,
+          color: 'transparent',
+          imageData,
+        };
+        handleAnnotationAdd(annotation);
+        setCurrentTool('select');
+      } catch (err) {
+        console.warn('Error getting signature size, falling back to default', err);
+        handleAnnotationAdd({
+          type: 'signature',
+          pageNumber: pdfState.currentPage,
+          position: { x: 100, y: 100 },
+          width: 200,
+          height: 80,
+          color: 'transparent',
+          imageData,
+        });
+        setCurrentTool('select');
+      }
     };
-    handleAnnotationAdd(annotation);
-    setCurrentTool('select');
+    insertSig();
   };
 
   const handleAnnotationUpdate = (id: string, updates: Partial<Annotation>) => {
@@ -464,6 +595,44 @@ export function PDFEditor() {
       toast.info('No saved session found');
     }
   };
+
+  // Normalize existing image/signature annotations so their bounding boxes match the actual image content
+  useEffect(() => {
+    if (!pdfState.annotations || pdfState.annotations.length === 0) return;
+    const normalize = async () => {
+      let changed = false;
+      const newAnnotations = await Promise.all(pdfState.annotations.map(async (ann) => {
+        if ((ann.type === 'image' || ann.type === 'signature') && ann.imageData) {
+          try {
+            const { width: naturalW, height: naturalH } = await getImageNaturalSize(ann.imageData);
+            let finalData = ann.imageData;
+            if (finalData.startsWith('data:image/png') || finalData.startsWith('data:image/webp')) {
+              const croppedData = await cropImageDataUrlToContent(finalData);
+              if (croppedData && croppedData !== finalData) {
+                finalData = croppedData;
+              }
+            }
+            // Heuristic: If annotation has default placeholder size or it's significantly larger than the natural size,
+            // shrink it to match the natural size (avoid surprises when legacy annotations inserted with default sizes)
+            const defaultImageSize = 200;
+            const defaultSigHeight = 80;
+            if ((ann.width === defaultImageSize && ann.height === defaultImageSize) || ann.width! > naturalW * 1.5 || ann.height! > naturalH * 1.5 || (ann.type === 'signature' && ann.height === defaultSigHeight)) {
+              changed = true;
+              return { ...ann, width: naturalW, height: naturalH, imageData: finalData } as Annotation;
+            }
+          } catch (err) {
+            // ignore dimension read errors
+          }
+        }
+        return ann;
+      }));
+      if (changed) {
+        setPdfState(prev => ({ ...prev, annotations: newAnnotations }));
+        addToHistory(newAnnotations);
+      }
+    };
+    normalize();
+  }, [pdfState.file]);
 
   const handleDeletePage = async (pageNumber: number) => {
     if (!pdfState.file || pageNumber < 1 || pageNumber > pdfState.numPages) {
@@ -734,28 +903,42 @@ export function PDFEditor() {
               case 'image':
                 if (annotation.imageData && annotation.width && annotation.height) {
                   try {
-                    // Extract base64 data (remove data:image/xxx;base64, prefix)
-                    const base64Data = annotation.imageData.replace(/^data:\w+\/\w+;base64,/, '');
+                      // Optionally crop transparent padding for PNG/WebP to avoid oversized bounding box
+                      let finalImageData: string = annotation.imageData as string;
+                      if (finalImageData.startsWith('data:image/png') || finalImageData.startsWith('data:image/webp')) {
+                        finalImageData = await cropImageDataUrlToContent(finalImageData);
+                      }
+                      // Extract base64 data (remove data:image/xxx;base64, prefix)
+                      const base64Data = finalImageData.replace(/^data:\w+\/\w+;base64,/, '');
                     const binaryString = atob(base64Data);
                     const imageBytes = new Uint8Array(binaryString.length);
                     for (let i = 0; i < binaryString.length; i++) imageBytes[i] = binaryString.charCodeAt(i);
 
                     // Determine image type and embed accordingly
                     let embeddedImage;
-                    if (annotation.imageData.startsWith('data:image/png')) {
+                    if (finalImageData.startsWith('data:image/png')) {
                       embeddedImage = await pdfDoc.embedPng(imageBytes);
-                    } else if (annotation.imageData.startsWith('data:image/jpeg') || annotation.imageData.startsWith('data:image/jpg')) {
+                    } else if (finalImageData.startsWith('data:image/jpeg') || finalImageData.startsWith('data:image/jpg')) {
                       embeddedImage = await pdfDoc.embedJpg(imageBytes);
                     } else {
                       console.warn('Unsupported image format, skipping:', annotation.imageData.substring(0, 30));
                       break;
                     }
 
+                    // Prefer drawing at the image's natural pixel dimensions (scaled to PDF points) if the
+                    // annotation bounding box is larger than the image content (prevents extra whitespace).
+                    const naturalDrawW = embeddedImage.width * scaleX;
+                    const naturalDrawH = embeddedImage.height * scaleY;
+                    let drawW = (annotation.width || 0) * scaleX;
+                    let drawH = (annotation.height || 0) * scaleY;
+                    if (drawW > naturalDrawW * 1.1) drawW = naturalDrawW;
+                    if (drawH > naturalDrawH * 1.1) drawH = naturalDrawH;
+
                     page.drawImage(embeddedImage, {
                       x: (annotation.position.x || 0) * scaleX,
-                      y: height - (annotation.position.y || 0) * scaleY - (annotation.height || 0) * scaleY,
-                      width: (annotation.width || 0) * scaleX,
-                      height: (annotation.height || 0) * scaleY,
+                      y: height - (annotation.position.y || 0) * scaleY - drawH,
+                      width: drawW,
+                      height: drawH,
                       opacity: annotation.opacity || 1,
                     });
                   } catch (error) {
@@ -937,12 +1120,30 @@ export function PDFEditor() {
           case 'image':
           case 'signature':
             if (annotation.imageData && annotation.width && annotation.height) {
-              const img = new Image();
-              img.src = annotation.imageData;
-              // Draw synchronously after image loads
-              img.onload = () => {
-                ctx.drawImage(img, x, y, (annotation.width || 0) * scaleX, (annotation.height || 0) * scaleY);
-              };
+              (async () => {
+                try {
+                  let finalData: string = annotation.imageData as string;
+                  if (finalData.startsWith('data:image/png') || finalData.startsWith('data:image/webp')) {
+                    finalData = await cropImageDataUrlToContent(finalData);
+                  }
+                  const img = new Image();
+                  img.src = finalData;
+                  await new Promise((r, rej) => { img.onload = r; img.onerror = rej; });
+                  // Compute draw size; if annotation width/height is larger than natural size, prefer natural
+                  const naturalW = img.naturalWidth;
+                  const naturalH = img.naturalHeight;
+                  let drawW = (annotation.width || naturalW) * scaleX;
+                  let drawH = (annotation.height || naturalH) * scaleY;
+                  const naturalDrawW = naturalW * scaleX;
+                  const naturalDrawH = naturalH * scaleY;
+                  // shrink if annotation bounding box is much larger than natural content
+                  if (drawW > naturalDrawW * 1.1) drawW = naturalDrawW;
+                  if (drawH > naturalDrawH * 1.1) drawH = naturalDrawH;
+                  ctx.drawImage(img, x, y, drawW, drawH);
+                } catch (err) {
+                  // ignore errors; just don't draw the image
+                }
+              })();
             }
             break;
         }
@@ -953,17 +1154,30 @@ export function PDFEditor() {
       const imagePromises: Promise<void>[] = [];
       for (const ann of annotationsOnPage) {
         if (ann.imageData && (ann.type === 'image' || ann.type === 'signature') && ann.width && ann.height) {
-          imagePromises.push(new Promise((resolve) => {
-            const img = new Image();
-            img.src = ann.imageData!;
-            img.onload = () => {
+          imagePromises.push((async () => {
+            try {
+              let finalData = ann.imageData!;
+              if (finalData.startsWith('data:image/png') || finalData.startsWith('data:image/webp')) {
+                finalData = await cropImageDataUrlToContent(finalData);
+              }
+              const img = new Image();
+              img.src = finalData;
+              await new Promise((r, rej) => { img.onload = r; img.onerror = rej; });
               const x = ann.position.x * scaleX;
               const y = ann.position.y * scaleY;
-              ctx.drawImage(img, x, y, (ann.width || 0) * scaleX, (ann.height || 0) * scaleY);
-              resolve();
-            };
-            img.onerror = () => resolve();
-          }));
+              const naturalW = img.naturalWidth;
+              const naturalH = img.naturalHeight;
+              let drawW = (ann.width || 0) * scaleX;
+              let drawH = (ann.height || 0) * scaleY;
+              const naturalDrawW = naturalW * scaleX;
+              const naturalDrawH = naturalH * scaleY;
+              if (drawW > naturalDrawW * 1.1) drawW = naturalDrawW;
+              if (drawH > naturalDrawH * 1.1) drawH = naturalDrawH;
+              ctx.drawImage(img, x, y, drawW, drawH);
+            } catch (err) {
+              // ignore image draw errors
+            }
+          })());
         } else {
           drawAnnotation(ann);
         }
