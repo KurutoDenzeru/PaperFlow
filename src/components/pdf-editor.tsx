@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import JSZip from 'jszip';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PDFUploadZone } from './pdf-upload-zone';
@@ -588,7 +589,7 @@ export function PDFEditor() {
     if (!pdfState.file) return;
     // If non-PDF image export requested, handle images and return
     if (options && options.format && options.format !== 'pdf') {
-      await exportPagesAsImages(options.format, options.scope ?? 'all', options.quality ?? 0.92, options.downloadName);
+      await exportPagesAsImages(options.format, options.scope ?? 'all', options.quality ?? 1.0, options.downloadName);
       return;
     }
     try {
@@ -615,10 +616,11 @@ export function PDFEditor() {
 
           // Find the DOM container for this page to compute scale between UI px and PDF points
           const pageContainer = document.querySelector(`[data-page-num="${pageIndex + 1}"]`) as HTMLElement | null;
-          const containerWidth = pageContainer ? pageContainer.clientWidth : width;
-          const containerHeight = pageContainer ? pageContainer.clientHeight : height;
-          const scaleX = width / containerWidth;
-          const scaleY = height / containerHeight;
+          const canvasEl = pageContainer?.querySelector('canvas') as HTMLCanvasElement | null;
+          const canvasWidth = canvasEl ? canvasEl.width : (pageContainer ? pageContainer.clientWidth : width);
+          const canvasHeight = canvasEl ? canvasEl.height : (pageContainer ? pageContainer.clientHeight : height);
+          const scaleX = width / canvasWidth;
+          const scaleY = height / canvasHeight;
 
           for (const annotation of annotations) {
             const colorMatch = annotation.color.match(/^#([0-9a-f]{6})$/i);
@@ -651,12 +653,19 @@ export function PDFEditor() {
                 if (annotation.width && annotation.height) {
                   const xPt = (annotation.position.x || 0) * scaleX;
                   const yPt = height - (annotation.position.y || 0) * scaleY - (annotation.height || 0) * scaleY;
+                  const fillColor = annotation.color && annotation.color !== 'transparent' ? color : undefined;
+                  const borderColor = annotation.strokeColor ? rgb(
+                    parseInt(annotation.strokeColor.replace('#', '').substr(0, 2), 16) / 255,
+                    parseInt(annotation.strokeColor.replace('#', '').substr(2, 2), 16) / 255,
+                    parseInt(annotation.strokeColor.replace('#', '').substr(4, 2), 16) / 255,
+                  ) : undefined;
                   page.drawRectangle({
                     x: xPt,
                     y: yPt,
                     width: (annotation.width || 0) * scaleX,
                     height: (annotation.height || 0) * scaleY,
-                    borderColor: color,
+                    color: fillColor,
+                    borderColor: borderColor || (fillColor ? undefined : color),
                     borderWidth: (annotation.strokeWidth || 2) * ((scaleX + scaleY) / 2),
                     opacity: annotation.opacity || 1,
                   });
@@ -684,14 +693,21 @@ export function PDFEditor() {
                   const hPt = (annotation.height || 0) * scaleY;
                   const xPt = (annotation.position.x || 0) * scaleX + wPt / 2;
                   const yPt = height - (annotation.position.y || 0) * scaleY - hPt / 2;
+                  const fillColor = annotation.color && annotation.color !== 'transparent' ? color : undefined;
+                  const borderColor = annotation.strokeColor ? rgb(
+                    parseInt(annotation.strokeColor.replace('#', '').substr(0, 2), 16) / 255,
+                    parseInt(annotation.strokeColor.replace('#', '').substr(2, 2), 16) / 255,
+                    parseInt(annotation.strokeColor.replace('#', '').substr(4, 2), 16) / 255,
+                  ) : undefined;
                   page.drawEllipse({
                     x: xPt,
                     y: yPt,
                     xScale: wPt / 2,
                     yScale: hPt / 2,
-                    borderColor: color,
+                    borderColor: borderColor || (fillColor ? undefined : color),
                     borderWidth: (annotation.strokeWidth || 2) * ((scaleX + scaleY) / 2),
                     opacity: annotation.opacity || 1,
+                    color: fillColor,
                   });
                 }
                 break;
@@ -719,8 +735,10 @@ export function PDFEditor() {
                 if (annotation.imageData && annotation.width && annotation.height) {
                   try {
                     // Extract base64 data (remove data:image/xxx;base64, prefix)
-                    const base64Data = annotation.imageData.split(',')[1];
-                    const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+                    const base64Data = annotation.imageData.replace(/^data:\w+\/\w+;base64,/, '');
+                    const binaryString = atob(base64Data);
+                    const imageBytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) imageBytes[i] = binaryString.charCodeAt(i);
 
                     // Determine image type and embed accordingly
                     let embeddedImage;
@@ -800,7 +818,10 @@ export function PDFEditor() {
   const exportPagesAsImages = async (format: 'png' | 'jpeg' | 'webp', scope: 'all' | 'current', quality: number, downloadName?: string) => {
     if (!pdfState.file) return;
     const pages: number[] = scope === 'current' ? [pdfState.currentPage] : Array.from({ length: pdfState.numPages }, (_, i) => i + 1);
+    
 
+    const saveAsZip = scope === 'all';
+    const zip = saveAsZip ? new JSZip() : null;
     for (const pageNum of pages) {
       // If the page is not visible/loaded, set current page to it and wait for DOM to render
       const pageResult = await waitForCanvasForPage(pageNum);
@@ -836,8 +857,10 @@ export function PDFEditor() {
 
       // Draw annotations from state for this page onto the canvas
       const annotationsOnPage = pdfState.annotations.filter(a => a.pageNumber === pageNum);
-      const scaleX = baseCanvas.width / (pageContainer as HTMLElement).clientWidth;
-      const scaleY = baseCanvas.height / (pageContainer as HTMLElement).clientHeight;
+      const canvasClientWidth = (baseCanvas as HTMLCanvasElement).clientWidth || baseCanvas.width || 1;
+      const canvasClientHeight = (baseCanvas as HTMLCanvasElement).clientHeight || baseCanvas.height || 1;
+      const scaleX = baseCanvas.width / canvasClientWidth;
+      const scaleY = baseCanvas.height / canvasClientHeight;
 
       const drawAnnotation = (annotation: Annotation) => {
         const { position } = annotation;
@@ -860,7 +883,17 @@ export function PDFEditor() {
                 ctx.globalAlpha = 0.3;
                 ctx.fillRect(x, y, w, h);
               } else {
-                ctx.strokeRect(x, y, w, h);
+                // Fill if color is not transparent
+                if (annotation.color && annotation.color !== 'transparent') {
+                  ctx.fillStyle = annotation.color;
+                  ctx.fillRect(x, y, w, h);
+                }
+                // Stroke border if stroke color/width provided
+                if (annotation.strokeColor || annotation.strokeWidth) {
+                  ctx.strokeStyle = annotation.strokeColor ?? annotation.color;
+                  ctx.lineWidth = annotation.strokeWidth ? annotation.strokeWidth * ((scaleX + scaleY) / 2) : ctx.lineWidth;
+                  ctx.strokeRect(x, y, w, h);
+                }
               }
             }
             break;
@@ -870,7 +903,16 @@ export function PDFEditor() {
               const h = annotation.height * scaleY;
               ctx.beginPath();
               ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
-              ctx.stroke();
+              // Fill if color provided
+              if (annotation.color && annotation.color !== 'transparent') {
+                ctx.fillStyle = annotation.color;
+                ctx.fill();
+              }
+              if (annotation.strokeColor || annotation.strokeWidth) {
+                ctx.strokeStyle = annotation.strokeColor ?? annotation.color;
+                ctx.lineWidth = annotation.strokeWidth ? annotation.strokeWidth * ((scaleX + scaleY) / 2) : ctx.lineWidth;
+                ctx.stroke();
+              }
             }
             break;
           case 'line':
@@ -933,11 +975,26 @@ export function PDFEditor() {
       if (format === 'jpeg') mime = 'image/jpeg';
       if (format === 'webp') mime = 'image/webp';
       const dataUrl = exportCanvas.toDataURL(mime, quality);
-      const link = document.createElement('a');
-      link.href = dataUrl;
       const baseName = downloadName ? downloadName.replace(/\.[^.]+$/i, '') : pdfState.file.name.replace(/\.pdf$/i, '');
-      link.download = `${baseName}-page-${pageNum}.${format}`;
-      link.click();
+      if (saveAsZip && zip) {
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        zip.file(`${baseName}-page-${pageNum}.${format}`, blob);
+      } else {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `${baseName}-page-${pageNum}.${format}`;
+        link.click();
+      }
+    }
+    if (saveAsZip && zip) {
+      const content = await zip.generateAsync({ type: 'blob' });
+      const zipLink = document.createElement('a');
+      zipLink.href = URL.createObjectURL(content);
+      const outName = downloadName ? downloadName.replace(/\.[^.]+$/i, '') : pdfState.file.name.replace(/\.pdf$/i, '');
+      zipLink.download = `${outName}-pages.zip`;
+      zipLink.click();
+      URL.revokeObjectURL(zipLink.href);
     }
 
     toast.success('Pages exported as images');

@@ -3,7 +3,7 @@ import { Download, Image, FileIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectTrigger, SelectContent, SelectItem } from '@/components/ui/select';
+// No select required - image quality removed
 import type { ExportOptions, ExportFormat, ExportScope } from '@/types/pdf';
 
 
@@ -18,7 +18,8 @@ interface ExportDialogProps {
 export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pdf', fileName }: ExportDialogProps) {
   const [format, setFormat] = useState<ExportFormat>(defaultFormat);
   const [scope, setScope] = useState<ExportScope>('all');
-  const [quality, setQuality] = useState<number>(0.92);
+  // Quality is fixed to 100% (1.0) per request
+  const [quality] = useState<number>(1.0);
   const [fileNameState, setFileNameState] = useState<string>(() => {
     if (!fileName) return '';
     // Remove extension so we append correct one later
@@ -98,27 +99,7 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
             </div>
           </div>
 
-          {(format === 'png' || format === 'jpeg' || format === 'webp') && (
-            <div>
-              <p className="text-sm font-medium mb-1">Image quality</p>
-              <div className="flex items-center gap-3">
-                <Select value={quality.toString()} onValueChange={(val) => setQuality(parseFloat(val))}>
-                  <SelectTrigger className="w-40 h-9">
-                    <span>{Math.round(quality * 100)}%</span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0.6">60%</SelectItem>
-                    <SelectItem value="0.7">70%</SelectItem>
-                    <SelectItem value="0.8">80%</SelectItem>
-                    <SelectItem value="0.9">90%</SelectItem>
-                    <SelectItem value="0.92">92%</SelectItem>
-                    <SelectItem value="1.0">100%</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">Higher quality = larger file size</p>
-              </div>
-            </div>
-          )}
+          
 
           <div>
             <p className="text-sm font-medium mb-1">Scope</p>
