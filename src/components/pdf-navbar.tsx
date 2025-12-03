@@ -7,10 +7,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import HowToDialog from './howto-dialog';
 import AboutDialog from './about-dialog';
+import { ExportDialog } from './export-dialog';
+import type { ExportOptions } from '@/types/pdf';
 
 interface PDFNavbarProps {
   fileName?: string;
-  onExport: () => void;
+  onExport: (options?: ExportOptions) => void;
   onUndo: () => void;
   onRedo: () => void;
   onDeleteSelected: () => void;
@@ -53,6 +55,7 @@ export function PDFNavbar({
 }: PDFNavbarProps) {
   const [howToOpen, setHowToOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   // Remove .pdf extension from display name
   const cleanFileName = fileName.endsWith('.pdf') ? fileName.slice(0, -4) : fileName;
 
@@ -84,9 +87,9 @@ export function PDFNavbar({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuItem onClick={onExport}>
+                      <DropdownMenuItem onClick={() => setExportOpen(true)}>
                       <Download className="w-4 h-4 mr-2" />
-                      <span>Export PDF</span>
+                        <span>Export</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={onNewSession}>
@@ -250,20 +253,20 @@ export function PDFNavbar({
           {/* Right: Quick Actions */}
           <div className="flex items-center gap-1 shrink-0 pt-1">
             {/* Desktop Quick Actions */}
-            <div className="hidden md:flex items-center gap-1">
+              <div className="hidden md:flex items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={onExport}
-                    className="h-8 px-3 text-sm"
-                  >
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => setExportOpen(true)}
+                      className="h-8 px-3 text-sm"
+                    >
                     <Download className="w-4 h-4 mr-2" />
                     <span className="hidden sm:inline">Export</span>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Export as PDF</TooltipContent>
+                <TooltipContent>Export</TooltipContent>
               </Tooltip>
             </div>
 
@@ -280,9 +283,9 @@ export function PDFNavbar({
                 <TooltipContent>More options</TooltipContent>
               </Tooltip>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={onExport}>
+                <DropdownMenuItem onClick={() => setExportOpen(true)}>
                   <Download className="w-4 h-4 mr-2" />
-                  <span>Export PDF</span>
+                  <span>Export</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onNewSession}>
@@ -298,6 +301,7 @@ export function PDFNavbar({
             {/* Render dialogs here so they sit near the navbar root */}
             <HowToDialog open={howToOpen} onOpenChange={setHowToOpen} />
             <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
+            <ExportDialog open={exportOpen} onOpenChange={setExportOpen} onExport={onExport} />
           </div>
         </div>
       </nav>

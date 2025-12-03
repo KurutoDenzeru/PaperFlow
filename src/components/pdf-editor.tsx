@@ -7,7 +7,7 @@ import { PDFNavbar } from './pdf-navbar';
 import { PDFToolbar } from './pdf-toolbar';
 import { PDFSidebar } from './pdf-sidebar';
 import { PDFCanvas } from './pdf-canvas';
-import type { Tool, Annotation, PDFState } from '@/types/pdf';
+import type { Tool, Annotation, PDFState, ExportOptions } from '@/types/pdf';
 
 export function PDFEditor() {
   const isMobile = useIsMobile();
@@ -584,9 +584,13 @@ export function PDFEditor() {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = async (options?: ExportOptions) => {
     if (!pdfState.file) return;
-
+    // If non-PDF image export requested, handle images and return
+    if (options && options.format && options.format !== 'pdf') {
+      await exportPagesAsImages(options.format, options.scope ?? 'all', options.quality ?? 0.92);
+      return;
+    }
     try {
       const existingPdfBytes = await pdfState.file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
@@ -735,11 +739,169 @@ export function PDFEditor() {
       link.click();
       URL.revokeObjectURL(url);
 
+      // Completed PDF export
       toast.success('PDF exported successfully');
+      return;
     } catch (error) {
       console.error('Export error:', error);
       toast.error('Failed to export PDF');
     }
+  };
+
+  const waitForCanvasForPage = async (pageNumber: number, timeout = 5000) => {
+    const start = Date.now();
+    while (true) {
+      const pageContainer = document.querySelector(`[data-page-num="${pageNumber}"]`);
+      const canvas = pageContainer?.querySelector('canvas');
+      if (canvas) return { pageContainer, canvas: canvas as HTMLCanvasElement };
+      if (Date.now() - start > timeout) return null;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+  };
+
+  const exportPagesAsImages = async (format: 'png' | 'jpeg' | 'webp', scope: 'all' | 'current', quality: number) => {
+    if (!pdfState.file) return;
+    const pages: number[] = scope === 'current' ? [pdfState.currentPage] : Array.from({ length: pdfState.numPages }, (_, i) => i + 1);
+
+    for (const pageNum of pages) {
+      // If the page is not visible/loaded, set current page to it and wait for DOM to render
+      const pageResult = await waitForCanvasForPage(pageNum);
+      if (!pageResult) {
+        // Try to navigate and wait for canvas
+        setPdfState((prev) => ({ ...prev, currentPage: pageNum }));
+        const loaded = await waitForCanvasForPage(pageNum, 7000);
+        if (!loaded) {
+          toast.error(`Could not load page ${pageNum} for export`);
+          continue;
+        }
+      }
+
+      const { canvas: baseCanvas, pageContainer } = (await waitForCanvasForPage(pageNum)) || {} as any;
+      if (!baseCanvas || !pageContainer) {
+        toast.error(`Failed to render page ${pageNum}`);
+        continue;
+      }
+
+      const exportCanvas = document.createElement('canvas');
+      const baseWidth = baseCanvas.width;
+      const baseHeight = baseCanvas.height;
+      exportCanvas.width = baseWidth;
+      exportCanvas.height = baseHeight;
+      const ctx = exportCanvas.getContext('2d');
+      if (!ctx) {
+        toast.error('Canvas context error');
+        return;
+      }
+
+      // Draw the rendered PDF page (base canvas) onto our export canvas
+      ctx.drawImage(baseCanvas, 0, 0);
+
+      // Draw annotations from state for this page onto the canvas
+      const annotationsOnPage = pdfState.annotations.filter(a => a.pageNumber === pageNum);
+      const scaleX = baseCanvas.width / (pageContainer as HTMLElement).clientWidth;
+      const scaleY = baseCanvas.height / (pageContainer as HTMLElement).clientHeight;
+
+      const drawAnnotation = (annotation: Annotation) => {
+        const { position } = annotation;
+        const x = position.x * scaleX;
+        const y = position.y * scaleY;
+        ctx.save();
+        ctx.globalAlpha = annotation.opacity ?? 1;
+        ctx.strokeStyle = annotation.strokeColor ?? annotation.color;
+        ctx.fillStyle = annotation.color;
+        ctx.lineWidth = annotation.strokeWidth ? annotation.strokeWidth * ((scaleX + scaleY) / 2) : 2;
+
+        switch (annotation.type) {
+          case 'rectangle':
+          case 'highlight':
+            if (annotation.width && annotation.height) {
+              const w = annotation.width * scaleX;
+              const h = annotation.height * scaleY;
+              if (annotation.type === 'highlight') {
+                ctx.fillStyle = annotation.color;
+                ctx.globalAlpha = 0.3;
+                ctx.fillRect(x, y, w, h);
+              } else {
+                ctx.strokeRect(x, y, w, h);
+              }
+            }
+            break;
+          case 'circle':
+            if (annotation.width && annotation.height) {
+              const w = annotation.width * scaleX;
+              const h = annotation.height * scaleY;
+              ctx.beginPath();
+              ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+            break;
+          case 'line':
+          case 'arrow':
+            if (annotation.endPoint) {
+              const ex = annotation.endPoint.x * scaleX;
+              const ey = annotation.endPoint.y * scaleY;
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(ex, ey);
+              ctx.stroke();
+            }
+            break;
+          case 'text':
+            if (annotation.text) {
+              const fontSize = (annotation.fontSize || 16) * ((scaleX + scaleY) / 2);
+              ctx.font = `${annotation.bold ? 'bold ' : ''}${annotation.italic ? 'italic ' : ''}${fontSize}px ${annotation.fontFamily ?? 'Arial'}`;
+              ctx.fillStyle = annotation.color ?? '#000';
+              ctx.fillText(annotation.text, x, y + fontSize);
+            }
+            break;
+          case 'image':
+          case 'signature':
+            if (annotation.imageData && annotation.width && annotation.height) {
+              const img = new Image();
+              img.src = annotation.imageData;
+              // Draw synchronously after image loads
+              img.onload = () => {
+                ctx.drawImage(img, x, y, (annotation.width || 0) * scaleX, (annotation.height || 0) * scaleY);
+              };
+            }
+            break;
+        }
+        ctx.restore();
+      };
+
+      // Draw all annotations and wait for any images to render
+      const imagePromises: Promise<void>[] = [];
+      for (const ann of annotationsOnPage) {
+        if (ann.imageData && (ann.type === 'image' || ann.type === 'signature') && ann.width && ann.height) {
+          imagePromises.push(new Promise((resolve) => {
+            const img = new Image();
+            img.src = ann.imageData!;
+            img.onload = () => {
+              const x = ann.position.x * scaleX;
+              const y = ann.position.y * scaleY;
+              ctx.drawImage(img, x, y, (ann.width || 0) * scaleX, (ann.height || 0) * scaleY);
+              resolve();
+            };
+            img.onerror = () => resolve();
+          }));
+        } else {
+          drawAnnotation(ann);
+        }
+      }
+      await Promise.all(imagePromises);
+
+      // Convert to the requested format and download
+      let mime = 'image/png';
+      if (format === 'jpeg') mime = 'image/jpeg';
+      if (format === 'webp') mime = 'image/webp';
+      const dataUrl = exportCanvas.toDataURL(mime, quality);
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `${pdfState.file.name.replace(/\.pdf$/i, '')}-page-${pageNum}.${format}`;
+      link.click();
+    }
+
+    toast.success('Pages exported as images');
   };
 
   if (!pdfState.file) {

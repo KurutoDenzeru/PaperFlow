@@ -25,7 +25,7 @@ export function HowToDialog({ open, onOpenChange }: HowToDialogProps) {
             <li>To add a signature, click Signature and choose Upload or Draw.</li>
             <li>Drag to move annotations; use handles to resize and rotate.</li>
             <li>Use the Layers tab to manage annotation visibility and order.</li>
-            <li>Export your PDF using File → Export PDF or the Export button.</li>
+            <li>Export your document using File → Export or the Export button; choose PDF or image formats (PNG, JPEG, WebP).</li>
           </ol>
 
           <div className="flex gap-2 justify-end">

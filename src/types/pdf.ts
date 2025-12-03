@@ -50,3 +50,12 @@ export interface PDFState {
   rotation: number;
   annotations: Annotation[];
 }
+
+export type ExportFormat = 'pdf' | 'png' | 'jpeg' | 'webp';
+export type ExportScope = 'all' | 'current';
+
+export interface ExportOptions {
+  format: ExportFormat;
+  scope: ExportScope;
+  quality?: number;
+}
