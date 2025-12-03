@@ -783,13 +783,15 @@ export function PDFEditor() {
           const page = pages[pageIndex];
           const { height, width } = page.getSize();
 
-          // Find the DOM container for this page to compute scale between UI px and PDF points
+          // Find the DOM container for this page and compute the CSS pixel sizes used by the UI
           const pageContainer = document.querySelector(`[data-page-num="${pageIndex + 1}"]`) as HTMLElement | null;
+          const pageRect = pageContainer?.getBoundingClientRect();
           const canvasEl = pageContainer?.querySelector('canvas') as HTMLCanvasElement | null;
-          const canvasWidth = canvasEl ? canvasEl.width : (pageContainer ? pageContainer.clientWidth : width);
-          const canvasHeight = canvasEl ? canvasEl.height : (pageContainer ? pageContainer.clientHeight : height);
-          const scaleX = width / canvasWidth;
-          const scaleY = height / canvasHeight;
+          // Use the CSS layout dimensions rather than the canvas's internal pixel dimensions
+          const cssWidth = pageRect?.width ?? pageContainer?.clientWidth ?? (canvasEl ? canvasEl.clientWidth : undefined) ?? width;
+          const cssHeight = pageRect?.height ?? pageContainer?.clientHeight ?? (canvasEl ? canvasEl.clientHeight : undefined) ?? height;
+          const scaleX = width / cssWidth;
+          const scaleY = height / cssHeight;
 
           for (const annotation of annotations) {
             const colorMatch = annotation.color.match(/^#([0-9a-f]{6})$/i);
@@ -925,18 +927,29 @@ export function PDFEditor() {
                       break;
                     }
 
-                    // Prefer drawing at the image's natural pixel dimensions (scaled to PDF points) if the
-                    // annotation bounding box is larger than the image content (prevents extra whitespace).
-                    const naturalDrawW = embeddedImage.width * scaleX;
-                    const naturalDrawH = embeddedImage.height * scaleY;
-                    let drawW = (annotation.width || 0) * scaleX;
-                    let drawH = (annotation.height || 0) * scaleY;
-                    if (drawW > naturalDrawW * 1.1) drawW = naturalDrawW;
-                    if (drawH > naturalDrawH * 1.1) drawH = naturalDrawH;
+                    // Compute object-fit: contain behavior so PDF draw matches UI when the image is letterboxed inside a larger annotation
+                    const annCssW = (annotation.width || 0);
+                    const annCssH = (annotation.height || 0);
+                    const imgNaturalW = embeddedImage.width; // px
+                    const imgNaturalH = embeddedImage.height; // px
+                    // Compute fit scale in CSS pixel space and then map to PDF points
+                    const fitScaleCss = Math.min(annCssW / imgNaturalW || 1, annCssH / imgNaturalH || 1);
+                    const drawWcss = imgNaturalW * fitScaleCss;
+                    const drawHcss = imgNaturalH * fitScaleCss;
+                    const offsetXcss = (annCssW - drawWcss) / 2;
+                    const offsetYcss = (annCssH - drawHcss) / 2;
+
+                    const drawW = drawWcss * scaleX; // PDF points
+                    const drawH = drawHcss * scaleY; // PDF points
+                    const offsetX = offsetXcss * scaleX;
+                    const offsetY = offsetYcss * scaleY;
+
+                    const xPt = (annotation.position.x || 0) * scaleX + offsetX;
+                    const yPt = height - ((annotation.position.y || 0) * scaleY + offsetY) - drawH;
 
                     page.drawImage(embeddedImage, {
-                      x: (annotation.position.x || 0) * scaleX,
-                      y: height - (annotation.position.y || 0) * scaleY - drawH,
+                      x: xPt,
+                      y: yPt,
                       width: drawW,
                       height: drawH,
                       opacity: annotation.opacity || 1,
@@ -1040,8 +1053,9 @@ export function PDFEditor() {
 
       // Draw annotations from state for this page onto the canvas
       const annotationsOnPage = pdfState.annotations.filter(a => a.pageNumber === pageNum);
-      const canvasClientWidth = (baseCanvas as HTMLCanvasElement).clientWidth || baseCanvas.width || 1;
-      const canvasClientHeight = (baseCanvas as HTMLCanvasElement).clientHeight || baseCanvas.height || 1;
+      const pageRect = (pageContainer as HTMLElement).getBoundingClientRect();
+      const canvasClientWidth = pageRect?.width || (baseCanvas as HTMLCanvasElement).clientWidth || baseCanvas.width || 1;
+      const canvasClientHeight = pageRect?.height || (baseCanvas as HTMLCanvasElement).clientHeight || baseCanvas.height || 1;
       const scaleX = baseCanvas.width / canvasClientWidth;
       const scaleY = baseCanvas.height / canvasClientHeight;
 
@@ -1129,17 +1143,21 @@ export function PDFEditor() {
                   const img = new Image();
                   img.src = finalData;
                   await new Promise((r, rej) => { img.onload = r; img.onerror = rej; });
-                  // Compute draw size; if annotation width/height is larger than natural size, prefer natural
-                  const naturalW = img.naturalWidth;
-                  const naturalH = img.naturalHeight;
-                  let drawW = (annotation.width || naturalW) * scaleX;
-                  let drawH = (annotation.height || naturalH) * scaleY;
-                  const naturalDrawW = naturalW * scaleX;
-                  const naturalDrawH = naturalH * scaleY;
-                  // shrink if annotation bounding box is much larger than natural content
-                  if (drawW > naturalDrawW * 1.1) drawW = naturalDrawW;
-                  if (drawH > naturalDrawH * 1.1) drawH = naturalDrawH;
-                  ctx.drawImage(img, x, y, drawW, drawH);
+                  // Compute object-fit: contain mapping and offsets consistent with export behavior
+                  const cssAnnW = annotation.width || img.naturalWidth;
+                  const cssAnnH = annotation.height || img.naturalHeight;
+                  const imgNaturalW = img.naturalWidth;
+                  const imgNaturalH = img.naturalHeight;
+                  const fitScaleCss = Math.min(cssAnnW / imgNaturalW || 1, cssAnnH / imgNaturalH || 1);
+                  const drawWcss = imgNaturalW * fitScaleCss;
+                  const drawHcss = imgNaturalH * fitScaleCss;
+                  const offsetXcss = (cssAnnW - drawWcss) / 2;
+                  const offsetYcss = (cssAnnH - drawHcss) / 2;
+                  const drawW = drawWcss * scaleX;
+                  const drawH = drawHcss * scaleY;
+                  const xCanvas = x + offsetXcss * scaleX;
+                  const yCanvas = y + offsetYcss * scaleY;
+                  ctx.drawImage(img, xCanvas, yCanvas, drawW, drawH);
                 } catch (err) {
                   // ignore errors; just don't draw the image
                 }
@@ -1163,17 +1181,20 @@ export function PDFEditor() {
               const img = new Image();
               img.src = finalData;
               await new Promise((r, rej) => { img.onload = r; img.onerror = rej; });
-              const x = ann.position.x * scaleX;
-              const y = ann.position.y * scaleY;
-              const naturalW = img.naturalWidth;
-              const naturalH = img.naturalHeight;
-              let drawW = (ann.width || 0) * scaleX;
-              let drawH = (ann.height || 0) * scaleY;
-              const naturalDrawW = naturalW * scaleX;
-              const naturalDrawH = naturalH * scaleY;
-              if (drawW > naturalDrawW * 1.1) drawW = naturalDrawW;
-              if (drawH > naturalDrawH * 1.1) drawH = naturalDrawH;
-              ctx.drawImage(img, x, y, drawW, drawH);
+              const cssAnnW = ann.width || 0;
+              const cssAnnH = ann.height || 0;
+              const imgNaturalW = img.naturalWidth;
+              const imgNaturalH = img.naturalHeight;
+              const fitScaleCss = Math.min(cssAnnW / imgNaturalW || 1, cssAnnH / imgNaturalH || 1);
+              const drawWcss = imgNaturalW * fitScaleCss;
+              const drawHcss = imgNaturalH * fitScaleCss;
+              const offsetXcss = (cssAnnW - drawWcss) / 2;
+              const offsetYcss = (cssAnnH - drawHcss) / 2;
+              const drawW = drawWcss * scaleX;
+              const drawH = drawHcss * scaleY;
+              const xCanvas = ann.position.x * scaleX + offsetXcss * scaleX;
+              const yCanvas = ann.position.y * scaleY + offsetYcss * scaleY;
+              ctx.drawImage(img, xCanvas, yCanvas, drawW, drawH);
             } catch (err) {
               // ignore image draw errors
             }
