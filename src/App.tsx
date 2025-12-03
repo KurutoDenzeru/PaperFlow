@@ -1,5 +1,5 @@
 import { Toaster } from 'sonner'
-import { PDFEditor } from './components/pdf-editor/pdf-editor'
+import { PDFEditor } from './components'
 
 function App() {
   return (
