@@ -1,4 +1,4 @@
-import { Download, Undo, Redo, Trash2, RotateCw, MoreVertical, FileIcon, RotateCcw, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Grid3x3, HelpCircle, Info } from 'lucide-react';
+import { Download, Undo, Redo, Trash2, RotateCw, FileIcon, RotateCcw, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Grid3x3, HelpCircle, Info } from 'lucide-react';
 import { useState } from 'react';
 
 // Components
@@ -270,34 +270,7 @@ export function PDFNavbar({
               </Tooltip>
             </div>
 
-            {/* More Menu */}
-            <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 px-1">
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent>More options</TooltipContent>
-              </Tooltip>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => setExportOpen(true)}>
-                  <Download className="w-4 h-4 mr-2" />
-                  <span>Export</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onNewSession}>
-                  <FileIcon className="w-4 h-4 mr-2" />
-                  <span>New Session</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onResetSession}>
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  <span>Reset Session</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* More Menu removed — replaced by Export quick action */}
             {/* Render dialogs here so they sit near the navbar root */}
             <HowToDialog open={howToOpen} onOpenChange={setHowToOpen} />
             <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />

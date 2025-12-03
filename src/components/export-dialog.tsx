@@ -38,37 +38,41 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
           <div>
             <p className="text-sm font-medium mb-1">Format</p>
             <div className="flex gap-2">
-              <button
-                type="button"
-                className={`rounded-lg px-3 py-2 border ${format === 'pdf' ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}`}
+              <Button
+                variant={format === 'pdf' ? 'default' : 'outline'}
+                size="sm"
                 onClick={() => setFormat('pdf')}
+                className="rounded-lg px-3 py-2"
               >
                 <FileIcon className="w-4 h-4 mr-2 inline" /> PDF
-              </button>
+              </Button>
 
-              <button
-                type="button"
-                className={`rounded-lg px-3 py-2 border ${format === 'png' ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}`}
+              <Button
+                variant={format === 'png' ? 'default' : 'outline'}
+                size="sm"
                 onClick={() => setFormat('png')}
+                className="rounded-lg px-3 py-2"
               >
                 <Image className="w-4 h-4 mr-2 inline" /> PNG
-              </button>
+              </Button>
 
-              <button
-                type="button"
-                className={`rounded-lg px-3 py-2 border ${format === 'jpeg' ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}`}
+              <Button
+                variant={format === 'jpeg' ? 'default' : 'outline'}
+                size="sm"
                 onClick={() => setFormat('jpeg')}
+                className="rounded-lg px-3 py-2"
               >
                 <Image className="w-4 h-4 mr-2 inline" /> JPEG
-              </button>
+              </Button>
 
-              <button
-                type="button"
-                className={`rounded-lg px-3 py-2 border ${format === 'webp' ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}`}
+              <Button
+                variant={format === 'webp' ? 'default' : 'outline'}
+                size="sm"
                 onClick={() => setFormat('webp')}
+                className="rounded-lg px-3 py-2"
               >
                 <Image className="w-4 h-4 mr-2 inline" /> WebP
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -97,31 +101,33 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
           <div>
             <p className="text-sm font-medium mb-1">Scope</p>
             <div className="flex gap-2">
-              <button
-                type="button"
-                className={`rounded-lg px-3 py-2 border ${scope === 'all' ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}`}
+              <Button
+                variant={scope === 'all' ? 'default' : 'outline'}
+                size="sm"
                 onClick={() => setScope('all')}
+                className="rounded-lg px-3 py-2"
               >
                 All pages
-              </button>
-              <button
-                type="button"
-                className={`rounded-lg px-3 py-2 border ${scope === 'current' ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}`}
+              </Button>
+              <Button
+                variant={scope === 'current' ? 'default' : 'outline'}
+                size="sm"
                 onClick={() => setScope('current')}
+                className="rounded-lg px-3 py-2"
               >
                 Current page
-              </button>
+              </Button>
             </div>
           </div>
         </div>
 
         <DialogFooter>
-          <div className="flex gap-2 w-full">
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+            <div className="flex gap-2 w-full">
+            <Button variant="ghost" onClick={() => onOpenChange(false)} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleExport} className="flex-1">
-              Export
+            <Button variant="outline" onClick={handleExport} className="flex-1">
+              <Download className="w-4 h-4 mr-2" /> Export
             </Button>
           </div>
         </DialogFooter>
