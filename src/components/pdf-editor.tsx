@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { PDFDocument, rgb } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PDFUploadZone } from './pdf-upload-zone';
@@ -588,13 +588,14 @@ export function PDFEditor() {
     if (!pdfState.file) return;
     // If non-PDF image export requested, handle images and return
     if (options && options.format && options.format !== 'pdf') {
-      await exportPagesAsImages(options.format, options.scope ?? 'all', options.quality ?? 0.92);
+      await exportPagesAsImages(options.format, options.scope ?? 'all', options.quality ?? 0.92, options.downloadName);
       return;
     }
     try {
       const existingPdfBytes = await pdfState.file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(existingPdfBytes);
       const pages = pdfDoc.getPages();
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
       // Group annotations by page
       const annotationsByPage = pdfState.annotations.reduce((acc, annotation) => {
@@ -610,7 +611,14 @@ export function PDFEditor() {
         const pageIndex = parseInt(pageNum) - 1;
         if (pageIndex >= 0 && pageIndex < pages.length) {
           const page = pages[pageIndex];
-          const { height } = page.getSize();
+          const { height, width } = page.getSize();
+
+          // Find the DOM container for this page to compute scale between UI px and PDF points
+          const pageContainer = document.querySelector(`[data-page-num="${pageIndex + 1}"]`) as HTMLElement | null;
+          const containerWidth = pageContainer ? pageContainer.clientWidth : width;
+          const containerHeight = pageContainer ? pageContainer.clientHeight : height;
+          const scaleX = width / containerWidth;
+          const scaleY = height / containerHeight;
 
           for (const annotation of annotations) {
             const colorMatch = annotation.color.match(/^#([0-9a-f]{6})$/i);
@@ -623,27 +631,33 @@ export function PDFEditor() {
               : rgb(1, 0, 0);
 
             switch (annotation.type) {
-              case 'text':
-                if (annotation.text) {
-                  page.drawText(annotation.text, {
-                    x: annotation.position.x,
-                    y: height - annotation.position.y - (annotation.fontSize || 16),
-                    size: annotation.fontSize || 16,
-                    color,
-                    opacity: annotation.opacity || 1,
-                  });
-                }
+                case 'text':
+                  if (annotation.text) {
+                    const fontSizePt = (annotation.fontSize || 16) * ((scaleX + scaleY) / 2);
+                    const xPt = (annotation.position.x || 0) * scaleX;
+                    const yPt = height - (annotation.position.y || 0) * scaleY - fontSizePt;
+                    page.drawText(annotation.text, {
+                      x: xPt,
+                      y: yPt,
+                      size: fontSizePt,
+                      font: helveticaFont,
+                      color,
+                      opacity: annotation.opacity || 1,
+                    });
+                  }
                 break;
 
               case 'rectangle':
                 if (annotation.width && annotation.height) {
+                  const xPt = (annotation.position.x || 0) * scaleX;
+                  const yPt = height - (annotation.position.y || 0) * scaleY - (annotation.height || 0) * scaleY;
                   page.drawRectangle({
-                    x: annotation.position.x,
-                    y: height - annotation.position.y - annotation.height,
-                    width: annotation.width,
-                    height: annotation.height,
+                    x: xPt,
+                    y: yPt,
+                    width: (annotation.width || 0) * scaleX,
+                    height: (annotation.height || 0) * scaleY,
                     borderColor: color,
-                    borderWidth: annotation.strokeWidth || 2,
+                    borderWidth: (annotation.strokeWidth || 2) * ((scaleX + scaleY) / 2),
                     opacity: annotation.opacity || 1,
                   });
                 }
@@ -651,11 +665,13 @@ export function PDFEditor() {
 
               case 'highlight':
                 if (annotation.width && annotation.height) {
+                  const xPt = (annotation.position.x || 0) * scaleX;
+                  const yPt = height - (annotation.position.y || 0) * scaleY - (annotation.height || 0) * scaleY;
                   page.drawRectangle({
-                    x: annotation.position.x,
-                    y: height - annotation.position.y - annotation.height,
-                    width: annotation.width,
-                    height: annotation.height,
+                    x: xPt,
+                    y: yPt,
+                    width: (annotation.width || 0) * scaleX,
+                    height: (annotation.height || 0) * scaleY,
                     color,
                     opacity: 0.3,
                   });
@@ -664,13 +680,17 @@ export function PDFEditor() {
 
               case 'circle':
                 if (annotation.width && annotation.height) {
+                  const wPt = (annotation.width || 0) * scaleX;
+                  const hPt = (annotation.height || 0) * scaleY;
+                  const xPt = (annotation.position.x || 0) * scaleX + wPt / 2;
+                  const yPt = height - (annotation.position.y || 0) * scaleY - hPt / 2;
                   page.drawEllipse({
-                    x: annotation.position.x + annotation.width / 2,
-                    y: height - annotation.position.y - annotation.height / 2,
-                    xScale: annotation.width / 2,
-                    yScale: annotation.height / 2,
+                    x: xPt,
+                    y: yPt,
+                    xScale: wPt / 2,
+                    yScale: hPt / 2,
                     borderColor: color,
-                    borderWidth: annotation.strokeWidth || 2,
+                    borderWidth: (annotation.strokeWidth || 2) * ((scaleX + scaleY) / 2),
                     opacity: annotation.opacity || 1,
                   });
                 }
@@ -681,14 +701,14 @@ export function PDFEditor() {
                 if (annotation.endPoint) {
                   page.drawLine({
                     start: {
-                      x: annotation.position.x,
-                      y: height - annotation.position.y,
+                      x: (annotation.position.x || 0) * scaleX,
+                      y: height - (annotation.position.y || 0) * scaleY,
                     },
                     end: {
-                      x: annotation.endPoint.x,
-                      y: height - annotation.endPoint.y,
+                      x: (annotation.endPoint.x || 0) * scaleX,
+                      y: height - (annotation.endPoint.y || 0) * scaleY,
                     },
-                    thickness: annotation.strokeWidth || 2,
+                    thickness: (annotation.strokeWidth || 2) * ((scaleX + scaleY) / 2),
                     color,
                     opacity: annotation.opacity || 1,
                   });
@@ -714,14 +734,30 @@ export function PDFEditor() {
                     }
 
                     page.drawImage(embeddedImage, {
-                      x: annotation.position.x,
-                      y: height - annotation.position.y - annotation.height,
-                      width: annotation.width,
-                      height: annotation.height,
+                      x: (annotation.position.x || 0) * scaleX,
+                      y: height - (annotation.position.y || 0) * scaleY - (annotation.height || 0) * scaleY,
+                      width: (annotation.width || 0) * scaleX,
+                      height: (annotation.height || 0) * scaleY,
                       opacity: annotation.opacity || 1,
                     });
                   } catch (error) {
                     console.error('Failed to embed image:', error);
+                  }
+                }
+                break;
+              case 'pen':
+                if (annotation.points && annotation.points.length > 1) {
+                  // Draw discrete line segments between points
+                  for (let i = 0; i < annotation.points.length - 1; i++) {
+                    const p1 = annotation.points[i];
+                    const p2 = annotation.points[i + 1];
+                    page.drawLine({
+                      start: { x: (p1.x || 0) * scaleX, y: height - (p1.y || 0) * scaleY },
+                      end: { x: (p2.x || 0) * scaleX, y: height - (p2.y || 0) * scaleY },
+                      thickness: (annotation.strokeWidth || 2) * ((scaleX + scaleY) / 2),
+                      color,
+                      opacity: annotation.opacity || 1,
+                    });
                   }
                 }
                 break;
@@ -735,7 +771,9 @@ export function PDFEditor() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `edited-${pdfState.file.name}`;
+      // Use provided filename if present in options, otherwise prefix edited-
+      const downloadName = options?.downloadName ? options.downloadName : `edited-${pdfState.file.name}`;
+      link.download = downloadName;
       link.click();
       URL.revokeObjectURL(url);
 
@@ -759,7 +797,7 @@ export function PDFEditor() {
     }
   };
 
-  const exportPagesAsImages = async (format: 'png' | 'jpeg' | 'webp', scope: 'all' | 'current', quality: number) => {
+  const exportPagesAsImages = async (format: 'png' | 'jpeg' | 'webp', scope: 'all' | 'current', quality: number, downloadName?: string) => {
     if (!pdfState.file) return;
     const pages: number[] = scope === 'current' ? [pdfState.currentPage] : Array.from({ length: pdfState.numPages }, (_, i) => i + 1);
 
@@ -897,7 +935,8 @@ export function PDFEditor() {
       const dataUrl = exportCanvas.toDataURL(mime, quality);
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = `${pdfState.file.name.replace(/\.pdf$/i, '')}-page-${pageNum}.${format}`;
+      const baseName = downloadName ? downloadName.replace(/\.[^.]+$/i, '') : pdfState.file.name.replace(/\.pdf$/i, '');
+      link.download = `${baseName}-page-${pageNum}.${format}`;
       link.click();
     }
 

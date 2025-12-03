@@ -58,4 +58,5 @@ export interface ExportOptions {
   format: ExportFormat;
   scope: ExportScope;
   quality?: number;
+  downloadName?: string;
 }

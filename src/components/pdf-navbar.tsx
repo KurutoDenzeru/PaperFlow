@@ -257,7 +257,7 @@ export function PDFNavbar({
               <Tooltip>
                 <TooltipTrigger asChild>
                     <Button
-                      variant="default"
+                      variant="outline"
                       size="sm"
                       onClick={() => setExportOpen(true)}
                       className="h-8 px-3 text-sm"
@@ -274,7 +274,7 @@ export function PDFNavbar({
             {/* Render dialogs here so they sit near the navbar root */}
             <HowToDialog open={howToOpen} onOpenChange={setHowToOpen} />
             <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
-            <ExportDialog open={exportOpen} onOpenChange={setExportOpen} onExport={onExport} />
+            <ExportDialog open={exportOpen} onOpenChange={setExportOpen} onExport={onExport} fileName={fileName} />
           </div>
         </div>
       </nav>

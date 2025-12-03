@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Image, FileIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectContent, SelectItem } from '@/components/ui/select';
 import type { ExportOptions, ExportFormat, ExportScope } from '@/types/pdf';
 
@@ -11,15 +12,32 @@ interface ExportDialogProps {
   onOpenChange: (open: boolean) => void;
   onExport: (options: ExportOptions) => void;
   defaultFormat?: ExportFormat;
+  fileName?: string;
 }
 
-export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pdf' }: ExportDialogProps) {
+export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pdf', fileName }: ExportDialogProps) {
   const [format, setFormat] = useState<ExportFormat>(defaultFormat);
   const [scope, setScope] = useState<ExportScope>('all');
   const [quality, setQuality] = useState<number>(0.92);
+  const [fileNameState, setFileNameState] = useState<string>(() => {
+    if (!fileName) return '';
+    // Remove extension so we append correct one later
+    return fileName.replace(/\.pdf$/i, '');
+  });
+
+  // Sync fileName prop to state when it changes
+  useEffect(() => {
+    if (fileName) setFileNameState(fileName.replace(/\.pdf$/i, ''));
+  }, [fileName]);
 
   const handleExport = () => {
-    onExport({ format, scope, quality });
+    // Determine download name (include extension)
+    const defaultName = fileNameState || 'export';
+    const ext = format === 'pdf' ? '.pdf' : `.${format}`;
+    const hasExt = /\.[a-z0-9]+$/i.test(defaultName);
+    const downloadName = hasExt ? defaultName : `${defaultName}${ext}`;
+
+    onExport({ format, scope, quality, downloadName });
     onOpenChange(false);
   };
 
@@ -35,6 +53,10 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
         </DialogHeader>
 
         <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-1 block">File name</label>
+            <Input value={fileNameState} onChange={(e) => setFileNameState(e.target.value)} placeholder={fileName || 'Untitled Document'} />
+          </div>
           <div>
             <p className="text-sm font-medium mb-1">Format</p>
             <div className="flex gap-2">
