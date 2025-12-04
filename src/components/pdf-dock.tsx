@@ -26,7 +26,7 @@ export function PDFDock({
   };
   return (
     <TooltipProvider>
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 mx-auto bg-background/95 backdrop-blur border rounded-lg shadow-lg z-50 flex flex-col sm:flex-row items-center justify-center gap-2 p-2 md:p-3 max-w-[calc(100vw-2rem)] sm:max-w-none">
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 mx-auto bg-background/95 backdrop-blur border rounded-lg shadow-lg z-50 flex flex-row items-center justify-center gap-2 p-2 md:p-3 overflow-x-auto">
         {/* Page Navigation Group */}
         <div className="flex items-center gap-1 md:gap-2 shrink-0">
           <Tooltip>
