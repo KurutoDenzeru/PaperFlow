@@ -21,18 +21,18 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
   const [quality] = useState<number>(1.0);
   const [fileNameState, setFileNameState] = useState<string>(() => {
     if (!fileName) return '';
-    // Remove any extension so we append correct one later
-    return fileName.replace(/\.[^.]+$/i, '');
+    // Remove all extensions for display
+    return fileName.replace(/\.[^.]+$/g, '');
   });
 
   // Sync fileName prop to state when it changes
   useEffect(() => {
-    if (fileName) setFileNameState(fileName.replace(/\.[^.]+$/i, ''));
+    if (fileName) setFileNameState(fileName.replace(/\.[^.]+$/g, ''));
   }, [fileName]);
 
-  // Compute basename for placeholder without extension
-  const computedBaseName = fileNameState || (fileName ? fileName.replace(/\.[^.]+$/i, '') : 'Untitled Document');
-  const placeholderWithoutExt = `${computedBaseName}`;
+  // Only show the base name (no extension) in the placeholder
+  const computedBaseName = fileNameState || (fileName ? fileName.replace(/\.[^.]+$/g, '') : 'Untitled Document');
+  const placeholderWithExt = computedBaseName;
 
   const handleExport = () => {
     // Determine download name (include extension)
@@ -59,7 +59,7 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-1 block">File name</label>
-            <Input value={fileNameState} onChange={(e) => setFileNameState(e.target.value)} placeholder={placeholderWithoutExt} />
+            <Input value={fileNameState} onChange={(e) => setFileNameState(e.target.value)} placeholder={placeholderWithExt} />
           </div>
           <div>
             <p className="text-sm font-medium mb-1">Format</p>
