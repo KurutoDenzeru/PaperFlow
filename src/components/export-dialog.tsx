@@ -30,6 +30,11 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
     if (fileName) setFileNameState(fileName.replace(/\.pdf$/i, ''));
   }, [fileName]);
 
+  // Compute extension to show in placeholder based on selected format
+  const ext = format === 'pdf' ? '.pdf' : `.${format}`;
+  const computedBaseName = fileNameState || (fileName ? fileName.replace(/\.[^.]+$/i, '') : 'Untitled Document');
+  const placeholderWithExt = `${computedBaseName}${ext}`;
+
   const handleExport = () => {
     // Determine download name (include extension)
     const defaultName = fileNameState || 'export';
@@ -55,7 +60,7 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-1 block">File name</label>
-            <Input value={fileNameState} onChange={(e) => setFileNameState(e.target.value)} placeholder={fileName || 'Untitled Document'} />
+            <Input value={fileNameState} onChange={(e) => setFileNameState(e.target.value)} placeholder={placeholderWithExt} />
           </div>
           <div>
             <p className="text-sm font-medium mb-1">Format</p>
