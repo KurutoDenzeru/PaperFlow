@@ -274,7 +274,7 @@ export function PDFNavbar({
             {/* Render dialogs here so they sit near the navbar root */}
             <HowToDialog open={howToOpen} onOpenChange={setHowToOpen} />
             <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
-            <ExportDialog open={exportOpen} onOpenChange={setExportOpen} onExport={onExport} fileName={fileName} />
+            <ExportDialog open={exportOpen} onOpenChange={setExportOpen} onExport={onExport} fileName={fileName} numPages={numPages} currentPage={currentPage} />
           </div>
         </div>
       </nav>
