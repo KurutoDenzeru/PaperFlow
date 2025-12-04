@@ -19,19 +19,21 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
   const [scope, setScope] = useState<ExportScope>('all');
   // Quality is fixed to 100% (1.0) per request
   const [quality] = useState<number>(1.0);
-  const [fileNameState, setFileNameState] = useState<string>(() => {
-    if (!fileName) return '';
-    // Remove all extensions for display
-    return fileName.replace(/\.[^.]+$/g, '');
-  });
+  const stripTrailingExtensions = (name?: string) => {
+    if (!name) return '';
+    // Remove one or more trailing extensions (e.g. `.pdf` or `.pdf.pdf` or `.tar.gz`)
+    return name.replace(/(\.[^.]+)+$/g, '');
+  };
+
+  const [fileNameState, setFileNameState] = useState<string>(() => stripTrailingExtensions(fileName));
 
   // Sync fileName prop to state when it changes
   useEffect(() => {
-    if (fileName) setFileNameState(fileName.replace(/\.[^.]+$/g, ''));
+    if (fileName) setFileNameState(stripTrailingExtensions(fileName));
   }, [fileName]);
 
   // Only show the base name (no extension) in the placeholder
-  const computedBaseName = fileNameState || (fileName ? fileName.replace(/\.[^.]+$/g, '') : 'Untitled Document');
+  const computedBaseName = fileNameState || stripTrailingExtensions(fileName) || 'Untitled Document';
   const placeholderWithExt = computedBaseName;
 
   const handleExport = () => {
@@ -59,7 +61,11 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-1 block">File name</label>
-            <Input value={fileNameState} onChange={(e) => setFileNameState(e.target.value)} placeholder={placeholderWithExt} />
+            <Input
+              value={fileNameState}
+              onChange={(e) => setFileNameState(stripTrailingExtensions(e.target.value))}
+              placeholder={placeholderWithExt}
+            />
           </div>
           <div>
             <p className="text-sm font-medium mb-1">Format</p>

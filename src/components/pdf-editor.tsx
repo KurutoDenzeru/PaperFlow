@@ -1235,7 +1235,7 @@ export function PDFEditor() {
       if (format === 'jpeg') mime = 'image/jpeg';
       if (format === 'webp') mime = 'image/webp';
       const dataUrl = exportCanvas.toDataURL(mime, quality);
-      const baseName = downloadName ? downloadName.replace(/\.[^.]+$/i, '') : pdfState.file.name.replace(/\.pdf$/i, '');
+      const baseName = downloadName ? downloadName.replace(/(\.[^.]+)+$/i, '') : pdfState.file.name.replace(/(\.[^.]+)+$/i, '');
       if (saveAsZip && zip) {
         const response = await fetch(dataUrl);
         const blob = await response.blob();
@@ -1251,7 +1251,7 @@ export function PDFEditor() {
       const content = await zip.generateAsync({ type: 'blob' });
       const zipLink = document.createElement('a');
       zipLink.href = URL.createObjectURL(content);
-      const outName = downloadName ? downloadName.replace(/\.[^.]+$/i, '') : pdfState.file.name.replace(/\.pdf$/i, '');
+      const outName = downloadName ? downloadName.replace(/(\.[^.]+)+$/i, '') : pdfState.file.name.replace(/(\.[^.]+)+$/i, '');
       zipLink.download = `${outName}-pages.zip`;
       zipLink.click();
       URL.revokeObjectURL(zipLink.href);

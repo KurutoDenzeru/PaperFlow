@@ -56,8 +56,8 @@ export function PDFNavbar({
   const [howToOpen, setHowToOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-  // Remove .pdf extension from display name
-  const cleanFileName = fileName.endsWith('.pdf') ? fileName.slice(0, -4) : fileName;
+  // Remove one or more trailing extensions from the display name (e.g. `.pdf`, `.pdf.pdf`, `.tar.gz`)
+  const cleanFileName = fileName ? fileName.replace(/(\.[^.]+)+$/g, '') : fileName;
 
   return (
     <TooltipProvider>
