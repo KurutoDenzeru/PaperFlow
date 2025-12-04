@@ -3,7 +3,6 @@ import { Download, Image, FileIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-// No select required - image quality removed
 import type { ExportOptions, ExportFormat, ExportScope } from '@/types/pdf';
 
 
@@ -99,8 +98,6 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
             </div>
           </div>
 
-          
-
           <div>
             <p className="text-sm font-medium mb-1">Scope</p>
             <div className="flex gap-2">
@@ -125,7 +122,7 @@ export function ExportDialog({ open, onOpenChange, onExport, defaultFormat = 'pd
         </div>
 
         <DialogFooter>
-            <div className="flex gap-2 w-full">
+          <div className="flex gap-2 w-full">
             <Button variant="ghost" onClick={() => onOpenChange(false)} className="flex-1">
               Cancel
             </Button>

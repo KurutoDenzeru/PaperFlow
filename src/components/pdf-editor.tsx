@@ -908,6 +908,22 @@ export function PDFEditor() {
                   try {
                       // Optionally crop transparent padding for PNG/WebP to avoid oversized bounding box
                       let finalImageData: string = annotation.imageData as string;
+                      // For SVG data URLs (drawn signatures), rasterize to PNG so pdf-lib can embed it
+                      if (finalImageData.startsWith('data:image/svg+xml')) {
+                        try {
+                          const svgImg = new Image();
+                          svgImg.src = finalImageData;
+                          await new Promise((r, rej) => { svgImg.onload = r; svgImg.onerror = rej; });
+                          const canvas = document.createElement('canvas');
+                          canvas.width = svgImg.naturalWidth || (annotation.width || 0);
+                          canvas.height = svgImg.naturalHeight || (annotation.height || 0);
+                          const ctx = canvas.getContext('2d');
+                          if (ctx) ctx.drawImage(svgImg, 0, 0, canvas.width, canvas.height);
+                          finalImageData = canvas.toDataURL('image/png');
+                        } catch (err) {
+                          console.warn('Failed to rasterize SVG image for pdf export', err);
+                        }
+                      }
                       if (finalImageData.startsWith('data:image/png') || finalImageData.startsWith('data:image/webp')) {
                         finalImageData = await cropImageDataUrlToContent(finalImageData);
                       }
