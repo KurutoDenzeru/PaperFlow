@@ -949,8 +949,12 @@ export function PDFEditor() {
                     const annCssH = (annotation.height || 0);
                     const imgNaturalW = embeddedImage.width; // px
                     const imgNaturalH = embeddedImage.height; // px
+                    // For signature annotations, avoid upscaling small/cropped signature images to the original bounding box.
+                    // Use the smaller of the annotation box and image natural size so cropped signatures appear tightly-bounded in output PDFs.
+                    const drawAnnCssW = annotation.type === 'signature' ? Math.min(annCssW, imgNaturalW) : annCssW;
+                    const drawAnnCssH = annotation.type === 'signature' ? Math.min(annCssH, imgNaturalH) : annCssH;
                     // Compute fit scale in CSS pixel space and then map to PDF points
-                    const fitScaleCss = Math.min(annCssW / imgNaturalW || 1, annCssH / imgNaturalH || 1);
+                    const fitScaleCss = Math.min(drawAnnCssW / imgNaturalW || 1, drawAnnCssH / imgNaturalH || 1);
                     const drawWcss = imgNaturalW * fitScaleCss;
                     const drawHcss = imgNaturalH * fitScaleCss;
                     const offsetXcss = (annCssW - drawWcss) / 2;
@@ -1163,9 +1167,11 @@ export function PDFEditor() {
                   // Compute object-fit: contain mapping and offsets consistent with export behavior
                   const cssAnnW = annotation.width || img.naturalWidth;
                   const cssAnnH = annotation.height || img.naturalHeight;
+                  const drawCssAnnW = annotation.type === 'signature' ? Math.min(cssAnnW, img.naturalWidth) : cssAnnW;
+                  const drawCssAnnH = annotation.type === 'signature' ? Math.min(cssAnnH, img.naturalHeight) : cssAnnH;
                   const imgNaturalW = img.naturalWidth;
                   const imgNaturalH = img.naturalHeight;
-                  const fitScaleCss = Math.min(cssAnnW / imgNaturalW || 1, cssAnnH / imgNaturalH || 1);
+                  const fitScaleCss = Math.min(drawCssAnnW / imgNaturalW || 1, drawCssAnnH / imgNaturalH || 1);
                   const drawWcss = imgNaturalW * fitScaleCss;
                   const drawHcss = imgNaturalH * fitScaleCss;
                   const offsetXcss = (cssAnnW - drawWcss) / 2;
@@ -1200,9 +1206,11 @@ export function PDFEditor() {
               await new Promise((r, rej) => { img.onload = r; img.onerror = rej; });
               const cssAnnW = ann.width || 0;
               const cssAnnH = ann.height || 0;
+              const drawCssAnnW = ann.type === 'signature' ? Math.min(cssAnnW, img.naturalWidth) : cssAnnW;
+              const drawCssAnnH = ann.type === 'signature' ? Math.min(cssAnnH, img.naturalHeight) : cssAnnH;
               const imgNaturalW = img.naturalWidth;
               const imgNaturalH = img.naturalHeight;
-              const fitScaleCss = Math.min(cssAnnW / imgNaturalW || 1, cssAnnH / imgNaturalH || 1);
+              const fitScaleCss = Math.min(drawCssAnnW / imgNaturalW || 1, drawCssAnnH / imgNaturalH || 1);
               const drawWcss = imgNaturalW * fitScaleCss;
               const drawHcss = imgNaturalH * fitScaleCss;
               const offsetXcss = (cssAnnW - drawWcss) / 2;
