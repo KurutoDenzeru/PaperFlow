@@ -1,4 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Document, Page, pdfjs } from 'react-pdf';
 import type { Tool, Annotation, Point } from '@/types/pdf';
 import { PDFDock } from './pdf-dock';
@@ -100,6 +101,9 @@ export function PDFCanvas({
 
   // View mode state
   const [viewMode, setViewMode] = useState<'single' | 'multiple'>('single');
+
+  // Mobile detection
+  const isMobile = useIsMobile();
 
   // Create URL from file when file changes
   useEffect(() => {
@@ -1208,7 +1212,7 @@ export function PDFCanvas({
       {/* PDF Canvas - Continuous Scroll */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 w-full overflow-auto p-2 md:p-8 pb-24"
+        className="flex-1 w-full overflow-auto p-2 md:p-8 pb-12 md:pb-24"
         style={{
           scrollBehavior: 'auto',
           cursor: isCanvasDragging ? 'grabbing' : (currentTool === 'select' && scale > 1 ? 'grab' : 'default'),
@@ -1294,7 +1298,9 @@ export function PDFCanvas({
                     maxWidth: '100%',
                     maxHeight: '100%',
                     display: 'flex',
-                    alignItems: 'center',
+                    // On mobile we top-align the page so it fills the viewport from the top
+                    // and avoids extra whitespace below; on desktop keep centered vertically
+                    alignItems: isMobile ? 'flex-start' : 'center',
                     justifyContent: 'center',
                   }}
                 >
