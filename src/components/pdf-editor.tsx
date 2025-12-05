@@ -21,6 +21,7 @@ export function PDFEditor() {
     rotation: 0,
     annotations: [],
   });
+  const [isInitialScaleSet, setIsInitialScaleSet] = useState(false);
 
   const [currentTool, setCurrentTool] = useState<Tool>('select');
   const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
@@ -288,6 +289,7 @@ export function PDFEditor() {
     }));
     setHistory([[]]);
     setHistoryIndex(0);
+    setIsInitialScaleSet(false);
   };
 
   // Helper: get natural dimensions of a data URL image
@@ -633,6 +635,58 @@ export function PDFEditor() {
     };
     normalize();
   }, [pdfState.file]);
+
+  // Fit page to screen on mobile or when file first loads
+  useEffect(() => {
+    if (!pdfState.file || pdfState.numPages <= 0) return;
+    if (isInitialScaleSet) return;
+
+    const computeAndSet = async () => {
+      try {
+        // Wait for the first page canvas to be present
+        await waitForCanvasForPage(pdfState.currentPage, 2500);
+
+        const pageContainer = document.querySelector(`[data-page-num="${pdfState.currentPage}"]`);
+        const canvas = pageContainer?.querySelector('canvas');
+        if (!canvas) return;
+
+        const canvasWidth = (canvas as HTMLCanvasElement).clientWidth || (canvas as HTMLCanvasElement).width;
+        const viewportWidth = window.innerWidth;
+        const sidebarOffset = sidebarOpen ? (viewportWidth >= 640 ? 256 : 224) : 0;
+        // Allow a small margin so it doesn't touch edges (match canvas padding in PDFCanvas)
+        const targetWidth = Math.max(0, viewportWidth - 32 - sidebarOffset);
+        let newScale = targetWidth / canvasWidth;
+
+        // Only apply on mobile or when a page is wider than the viewport
+        if (isMobile || newScale < 1) {
+          const MIN_SCALE = 0.4;
+          const MAX_SCALE = 2.0;
+          newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+
+          setPdfState(prev => ({ ...prev, scale: newScale }));
+        }
+        setIsInitialScaleSet(true);
+      } catch (err) {
+        console.warn('Could not calculate initial scale:', err);
+      }
+    };
+    computeAndSet();
+
+    // Recompute on window resize so mobile rotations maintain fit
+    const onResize = () => {
+      if (!isMobile) return; // Keep desktop behaviour unchanged
+      setIsInitialScaleSet(false);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [pdfState.file, pdfState.numPages, pdfState.currentPage, isMobile, isInitialScaleSet]);
+
+  // If sidebar toggled, recompute initial scale to fit the newly available width
+  useEffect(() => {
+    if (pdfState.file) {
+      setIsInitialScaleSet(false);
+    }
+  }, [sidebarOpen]);
 
   const handleDeletePage = async (pageNumber: number) => {
     if (!pdfState.file || pageNumber < 1 || pageNumber > pdfState.numPages) {

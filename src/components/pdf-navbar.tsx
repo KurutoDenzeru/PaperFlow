@@ -53,6 +53,7 @@ export function PDFNavbar({
   viewMode = 'single',
   onViewModeChange,
 }: PDFNavbarProps) {
+  const MIN_SCALE = 0.4;
   const [howToOpen, setHowToOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
@@ -177,8 +178,8 @@ export function PDFNavbar({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => onScaleChange?.(Math.max(1, scale - 0.1))}
-                          disabled={scale <= 1}
+                          onClick={() => onScaleChange?.(Math.max(MIN_SCALE, scale - 0.1))}
+                          disabled={scale <= MIN_SCALE}
                           className="h-8 w-8 p-0"
                         >
                           <ZoomOut className="w-4 h-4" />

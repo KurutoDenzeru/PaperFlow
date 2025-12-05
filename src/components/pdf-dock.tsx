@@ -24,6 +24,7 @@ export function PDFDock({
   const handleViewModeChange = (mode: 'single' | 'multiple') => {
     onViewModeChange?.(mode);
   };
+  const MIN_SCALE = 0.4;
   return (
     <TooltipProvider>
       <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 mx-auto bg-background/95 backdrop-blur border rounded-lg shadow-lg z-50 flex flex-row items-center justify-center gap-2 p-2 md:p-3 overflow-x-auto">
@@ -76,15 +77,15 @@ export function PDFDock({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onScaleChange(Math.max(1, scale - 0.1))}
-                disabled={scale <= 1}
+                onClick={() => onScaleChange(Math.max(MIN_SCALE, scale - 0.1))}
+                disabled={scale <= MIN_SCALE}
                 className="h-8 w-8 md:h-9 md:w-9 p-0"
                 title="Zoom out"
               >
                 <ZoomOut className="w-4 h-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Zoom out (100% minimum)</TooltipContent>
+            <TooltipContent>Zoom out (40% minimum)</TooltipContent>
           </Tooltip>
 
           <span className="text-xs sm:text-sm font-medium min-w-fit px-1.5 md:px-2 whitespace-nowrap">

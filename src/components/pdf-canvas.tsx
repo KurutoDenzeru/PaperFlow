@@ -196,11 +196,12 @@ export function PDFCanvas({
   const getRelativePosition = useCallback((e: React.MouseEvent): Point => {
     const target = e.currentTarget as HTMLDivElement;
     const rect = target.getBoundingClientRect();
+    // Convert client coordinates to unscaled PDF coordinates so annotations remain consistent with the underlying document size
     return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      x: (e.clientX - rect.left) / scale,
+      y: (e.clientY - rect.top) / scale,
     };
-  }, []);
+  }, [scale]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     // If it's select mode or a tool that does not support drawing, do nothing
@@ -321,8 +322,8 @@ export function PDFCanvas({
     if (!pageContainer) return;
     
     const rect = pageContainer.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const mouseX = (e.clientX - rect.left) / scale;
+    const mouseY = (e.clientY - rect.top) / scale;
     
     setIsDragging(true);
     setDragAnnotationId(annotation.id);
@@ -341,8 +342,8 @@ export function PDFCanvas({
     // Get the current mouse position relative to the page
     const pageContainer = e.currentTarget as HTMLElement;
     const rect = pageContainer.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const mouseX = (e.clientX - rect.left) / scale;
+    const mouseY = (e.clientY - rect.top) / scale;
 
     const newPosition = {
       x: mouseX - dragOffset.x,
@@ -392,8 +393,8 @@ export function PDFCanvas({
     if (!pageContainer) return;
 
     const rect = pageContainer.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const mouseX = (e.clientX - rect.left) / scale;
+    const mouseY = (e.clientY - rect.top) / scale;
 
     const annotation = annotations.find(a => a.id === annotationId);
     if (!annotation) return;
@@ -436,8 +437,8 @@ export function PDFCanvas({
 
     const pageContainer = e.currentTarget as HTMLElement;
     const rect = pageContainer.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const mouseX = (e.clientX - rect.left) / scale;
+    const mouseY = (e.clientY - rect.top) / scale;
 
     const deltaX = mouseX - resizeStartPos.x;
     const deltaY = mouseY - resizeStartPos.y;
@@ -574,8 +575,8 @@ export function PDFCanvas({
     const centerY = bounds.y + bounds.height / 2;
 
     const rect = pageContainer.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const mouseX = (e.clientX - rect.left) / scale;
+    const mouseY = (e.clientY - rect.top) / scale;
 
     // Calculate initial angle from center to mouse
     const deltaX = mouseX - centerX;
@@ -600,8 +601,8 @@ export function PDFCanvas({
     const centerY = bounds.y + bounds.height / 2;
 
     const rect = pageContainer.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const mouseX = (e.clientX - rect.left) / scale;
+    const mouseY = (e.clientY - rect.top) / scale;
 
     // Calculate current angle from center to mouse
     const deltaX = mouseX - centerX;
@@ -1231,7 +1232,7 @@ export function PDFCanvas({
                 }`}
                 style={{
                   width: viewMode === 'multiple' ? '100%' : 'fit-content',
-                  maxWidth: scale > 1 && viewMode === 'single' ? '90vw' : 'none',
+                  maxWidth: viewMode === 'single' ? '90vw' : 'none',
                   cursor: currentTool === 'select' ? 'default' : 'crosshair',
                 }}
                 onMouseDown={(e) => {
@@ -1301,8 +1302,10 @@ export function PDFCanvas({
                   <div
                     style={{
                       transform: `scale(${scale})`,
-                      transformOrigin: 'top left',
-                      display: 'inline-block',
+                      // Use center top - this keeps the page centered while still scaling from the top edge
+                      transformOrigin: 'center top',
+                      display: 'block',
+                      margin: '0 auto',
                     }}
                   >
                     <Document
