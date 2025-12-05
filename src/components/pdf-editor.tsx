@@ -640,6 +640,7 @@ export function PDFEditor() {
   useEffect(() => {
     if (!pdfState.file || pdfState.numPages <= 0) return;
     if (isInitialScaleSet) return;
+    if (!isMobile) return; // Only auto-fit on mobile
 
     const computeAndSet = async () => {
       try {
@@ -657,8 +658,8 @@ export function PDFEditor() {
         const targetWidth = Math.max(0, viewportWidth - 32 - sidebarOffset);
         let newScale = targetWidth / canvasWidth;
 
-        // Only apply on mobile or when a page is wider than the viewport
-        if (isMobile || newScale < 1) {
+        // Only apply on mobile - desktop default will remain unchanged
+        if (isMobile) {
           const MIN_SCALE = 0.4;
           const MAX_SCALE = 2.0;
           newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
@@ -687,6 +688,18 @@ export function PDFEditor() {
       setIsInitialScaleSet(false);
     }
   }, [sidebarOpen]);
+
+  // When switching from mobile back to desktop, reset scale to default (100%) and prevent re-fitting
+  useEffect(() => {
+    if (!isMobile) {
+      // Reset to default desktop scale
+      setPdfState(prev => ({ ...prev, scale: 1 }));
+      setIsInitialScaleSet(true); // avoid running fit logic when not mobile
+    } else {
+      // Allow re-run when switching to mobile
+      setIsInitialScaleSet(false);
+    }
+  }, [isMobile]);
 
   const handleDeletePage = async (pageNumber: number) => {
     if (!pdfState.file || pageNumber < 1 || pageNumber > pdfState.numPages) {
