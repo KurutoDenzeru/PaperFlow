@@ -652,11 +652,21 @@ export function PDFEditor() {
         if (!canvas) return;
 
         const canvasWidth = (canvas as HTMLCanvasElement).clientWidth || (canvas as HTMLCanvasElement).width;
+        const canvasHeight = (canvas as HTMLCanvasElement).clientHeight || (canvas as HTMLCanvasElement).height;
         const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
         const sidebarOffset = sidebarOpen ? (viewportWidth >= 640 ? 256 : 224) : 0;
+        
         // Allow a small margin so it doesn't touch edges (match canvas padding in PDFCanvas)
         const targetWidth = Math.max(0, viewportWidth - 32 - sidebarOffset);
-        let newScale = targetWidth / canvasWidth;
+        const navbarHeight = 60; // Approximate navbar height
+        const dockHeight = 80; // Approximate dock height with margins
+        const targetHeight = Math.max(0, viewportHeight - navbarHeight - dockHeight - 16);
+        
+        // Compute scale to fit both width and height, using the smaller one
+        const scaleByWidth = targetWidth / canvasWidth;
+        const scaleByHeight = targetHeight / canvasHeight;
+        let newScale = Math.min(scaleByWidth, scaleByHeight);
 
         // Only apply on mobile - desktop default will remain unchanged
         if (isMobile) {

@@ -1208,7 +1208,7 @@ export function PDFCanvas({
       {/* PDF Canvas - Continuous Scroll */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 w-full overflow-auto p-4 md:p-8 pb-24"
+        className="flex-1 w-full overflow-auto p-2 md:p-8 pb-24"
         style={{
           scrollBehavior: 'auto',
           cursor: isCanvasDragging ? 'grabbing' : (currentTool === 'select' && scale > 1 ? 'grab' : 'default'),
@@ -1292,9 +1292,9 @@ export function PDFCanvas({
                   className="overflow-auto"
                   style={{
                     maxWidth: '100%',
-                    maxHeight: scale > 1 ? '80vh' : 'none',
+                    maxHeight: '100%',
                     display: 'flex',
-                    alignItems: scale <= 1 ? 'center' : 'flex-start',
+                    alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
